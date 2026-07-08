@@ -1,14 +1,96 @@
-import { StyleSheet, Text, View } from "react-native";
+import { useRouter } from "expo-router";
+import { ScrollView, StyleSheet, Text, TouchableOpacity, View } from "react-native";
+import { COLORS, RADIUS, SPACING } from "../src/constants/config";
+import { useCats } from "../src/hooks/useCats";
 
 export default function HomeScreen() {
+  const router = useRouter();
+  const { cats, loading } = useCats();
+
+  const recentCats = cats.slice(0, 5);
+
   return (
-    <View style={styles.container}>
-      <Text style={styles.text}>CatDex Home</Text>
-    </View>
+    <ScrollView style={styles.container} contentContainerStyle={styles.content}>
+      {/* Personal Cat placeholder - swappable later for Rive animation */}
+      <View style={styles.personalCatCard}>
+        <Text style={styles.personalCatText}>🐱 Personal Cat Coming Soon</Text>
+      </View>
+
+      <View style={styles.statsCard}>
+        <Text style={styles.statsNumber}>{loading ? "..." : cats.length}</Text>
+        <Text style={styles.statsLabel}>Cats Collected</Text>
+      </View>
+
+      <View style={styles.buttonRow}>
+        <TouchableOpacity style={styles.button} onPress={() => router.push("/camera")}>
+          <Text style={styles.buttonText}>📷 Camera</Text>
+        </TouchableOpacity>
+        <TouchableOpacity style={styles.button} onPress={() => router.push("/camera?mode=gallery")}>
+          <Text style={styles.buttonText}>🖼️ Gallery</Text>
+        </TouchableOpacity>
+      </View>
+
+      <TouchableOpacity style={styles.wideButton} onPress={() => router.push("/catdex")}>
+        <Text style={styles.buttonText}>📖 CatDex Collection</Text>
+      </TouchableOpacity>
+
+      <TouchableOpacity style={styles.wideButton} onPress={() => router.push("/settings")}>
+        <Text style={styles.buttonText}>⚙️ Settings</Text>
+      </TouchableOpacity>
+
+      {recentCats.length > 0 && (
+        <View style={styles.recentSection}>
+          <Text style={styles.sectionTitle}>Recently Added</Text>
+          {recentCats.map((cat) => (
+            <Text key={cat.id} style={styles.recentItem}>• {cat.name}</Text>
+          ))}
+        </View>
+      )}
+    </ScrollView>
   );
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, justifyContent: "center", alignItems: "center" },
-  text: { fontSize: 24, fontWeight: "bold" },
+  container: { flex: 1, backgroundColor: COLORS.background },
+  content: { padding: SPACING.md },
+  personalCatCard: {
+    backgroundColor: COLORS.card,
+    borderRadius: RADIUS.lg,
+    padding: SPACING.xl,
+    alignItems: "center",
+    justifyContent: "center",
+    marginBottom: SPACING.md,
+    minHeight: 160,
+    borderWidth: 1,
+    borderColor: COLORS.border,
+  },
+  personalCatText: { fontSize: 16, color: COLORS.textMuted },
+  statsCard: {
+    backgroundColor: COLORS.card,
+    borderRadius: RADIUS.md,
+    padding: SPACING.md,
+    alignItems: "center",
+    marginBottom: SPACING.md,
+  },
+  statsNumber: { fontSize: 32, fontWeight: "bold", color: COLORS.primary },
+  statsLabel: { fontSize: 14, color: COLORS.textMuted },
+  buttonRow: { flexDirection: "row", gap: SPACING.sm, marginBottom: SPACING.sm },
+  button: {
+    flex: 1,
+    backgroundColor: COLORS.primary,
+    borderRadius: RADIUS.md,
+    padding: SPACING.md,
+    alignItems: "center",
+  },
+  wideButton: {
+    backgroundColor: COLORS.primary,
+    borderRadius: RADIUS.md,
+    padding: SPACING.md,
+    alignItems: "center",
+    marginBottom: SPACING.sm,
+  },
+  buttonText: { color: "#fff", fontWeight: "600", fontSize: 15 },
+  recentSection: { marginTop: SPACING.md },
+  sectionTitle: { fontSize: 16, fontWeight: "bold", marginBottom: SPACING.sm, color: COLORS.text },
+  recentItem: { fontSize: 14, color: COLORS.text, marginBottom: SPACING.xs },
 });
