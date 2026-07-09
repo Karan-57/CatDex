@@ -25,3 +25,6 @@ export const RADIUS = {
   md: 12,
   lg: 20,
 };
+
+export const GOOGLE_CLIENT_ID = "782879129661-r6ufor30gkqjfc84kr99gua5uni704vc.apps.googleusercontent.com";
+export const GOOGLE_DRIVE_BACKUP_FILENAME = "catdex_backup.zip";
