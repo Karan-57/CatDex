@@ -1,13 +1,14 @@
 import { useLocalSearchParams, useRouter } from "expo-router";
 import { useEffect, useState } from "react";
 import {
-    KeyboardAvoidingView, Platform,
-    ScrollView,
-    StyleSheet,
-    Switch,
-    Text, TextInput,
-    TouchableOpacity,
-    View,
+  Alert,
+  KeyboardAvoidingView, Platform,
+  ScrollView,
+  StyleSheet,
+  Switch,
+  Text, TextInput,
+  TouchableOpacity,
+  View,
 } from "react-native";
 import { COLORS, RADIUS, SPACING } from "../../../src/constants/config";
 import { useCats } from "../../../src/hooks/useCats";
@@ -40,19 +41,24 @@ export default function EditCatScreen() {
 
   async function handleSave() {
     if (!name.trim()) {
-      alert("Name can't be empty.");
+      Alert.alert("Missing Name", "Name can't be empty.");
       return;
     }
     setSaving(true);
-    await editCat(Number(id), {
-      name: name.trim(),
-      description: description.trim(),
-      notes: notes.trim(),
-      dateFound,
-      isFavorite,
-    });
-    setSaving(false);
-    router.back();
+    try {
+      await editCat(Number(id), {
+        name: name.trim(),
+        description: description.trim(),
+        notes: notes.trim(),
+        dateFound,
+        isFavorite,
+      });
+      router.back();
+    } catch (err) {
+      Alert.alert("Save Failed", err.message);
+    } finally {
+      setSaving(false);
+    }
   }
 
   if (loading) {

@@ -1,6 +1,6 @@
 import { useLocalSearchParams, useRouter } from "expo-router";
 import { useEffect, useState } from "react";
-import { ActivityIndicator, Image, StyleSheet, Text, TouchableOpacity, View } from "react-native";
+import { ActivityIndicator, Alert, Image, StyleSheet, Text, TouchableOpacity, View } from "react-native";
 import { COLORS, RADIUS, SPACING } from "../src/constants/config";
 import { generateSticker } from "../src/services/ai/stickerService";
 
@@ -11,12 +11,18 @@ export default function StickerPreviewScreen() {
   const [processing, setProcessing] = useState(true);
 
   useEffect(() => {
-    (async () => {
+  (async () => {
+    try {
       const uri = await generateSticker(imageUri);
       setStickerUri(uri);
+    } catch (err) {
+      Alert.alert("Processing Failed", "Could not process this image. Please try again.");
+      router.back();
+    } finally {
       setProcessing(false);
-    })();
-  }, [imageUri]);
+    }
+  })();
+}, [imageUri]);
 
   function confirmAndContinue() {
     router.push({

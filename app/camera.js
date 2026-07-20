@@ -2,7 +2,7 @@ import { CameraView, useCameraPermissions } from "expo-camera";
 import * as ImagePicker from "expo-image-picker";
 import { useLocalSearchParams, useRouter } from "expo-router";
 import React, { useRef } from "react";
-import { StyleSheet, Text, TouchableOpacity, View } from "react-native";
+import { Alert, StyleSheet, Text, TouchableOpacity, View } from "react-native";
 import { COLORS, RADIUS, SPACING } from "../src/constants/config";
 
 export default function CameraScreen() {
@@ -32,8 +32,12 @@ export default function CameraScreen() {
 
   async function takePicture() {
     if (!cameraRef.current) return;
-    const photo = await cameraRef.current.takePictureAsync({ quality: 0.8 });
-    goToPreview(photo.uri);
+    try {
+      const photo = await cameraRef.current.takePictureAsync({ quality: 0.8 });
+      goToPreview(photo.uri);
+    } catch (err) {
+      Alert.alert("Camera Error", "Could not take photo. Please try again.");
+    }
   }
 
   function goToPreview(uri) {
