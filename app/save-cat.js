@@ -1,15 +1,18 @@
 import { useLocalSearchParams, useRouter } from "expo-router";
 import { useState } from "react";
 import {
-    Image,
-    KeyboardAvoidingView, Platform,
-    ScrollView,
-    StyleSheet,
-    Switch,
-    Text, TextInput,
-    TouchableOpacity,
-    View,
+  Alert,
+  Image,
+  KeyboardAvoidingView, Platform,
+  ScrollView,
+  StyleSheet,
+  Switch,
+  Text, TextInput,
+  TouchableOpacity,
+  View,
 } from "react-native";
+
+import AppModal from "../src/components/AppModal";
 import { COLORS, RADIUS, SPACING, STORAGE_FOLDERS } from "../src/constants/config";
 import { useCats } from "../src/hooks/useCats";
 import { saveImageToStorage } from "../src/services/storage/fileStorage";
@@ -25,15 +28,15 @@ export default function SaveCatScreen() {
   const [notes, setNotes] = useState("");
   const [isFavorite, setIsFavorite] = useState(false);
   const [saving, setSaving] = useState(false);
+  const [showSuccessModal, setShowSuccessModal] = useState(false);
 
-  async function handleSave() {
-    if (!name.trim()) {
-      alert("Please enter a name for this cat.");
-      return;
-    }
-    setSaving(true);
-
-    // Copy both images from temp locations into permanent app storage.
+async function handleSave() {
+  if (!name.trim()) {
+    Alert.alert("Missing Name", "Please enter a name for this cat.");
+    return;
+  }
+  setSaving(true);
+  try {
     const originalPath = await saveImageToStorage(originalUri, STORAGE_FOLDERS.ORIGINALS);
     const stickerPath = await saveImageToStorage(stickerUri, STORAGE_FOLDERS.STICKERS);
 
@@ -47,9 +50,13 @@ export default function SaveCatScreen() {
       stickerPhotoPath: stickerPath,
     });
 
+    setShowSuccessModal(true);
+  } catch (err) {
+    Alert.alert("Save Failed", err.message);
+  } finally {
     setSaving(false);
-    router.replace("/"); // back to Home
   }
+}
 
   return (
     <KeyboardAvoidingView
@@ -97,6 +104,20 @@ export default function SaveCatScreen() {
           <Text style={styles.buttonText}>{saving ? "Saving..." : "Save Cat"}</Text>
         </TouchableOpacity>
       </ScrollView>
+      <AppModal
+        visible={showSuccessModal}
+        title="Cat Saved"
+        message={`${name.trim()} has been added to your CatDex.`}
+        actions={[
+          {
+            label: "OK",
+            onPress: () => {
+              setShowSuccessModal(false);
+              router.replace("/");
+            },
+          },
+        ]}
+      />
     </KeyboardAvoidingView>
   );
 }

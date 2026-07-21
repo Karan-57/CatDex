@@ -1,5 +1,5 @@
 import { useRouter } from "expo-router";
-import { ScrollView, StyleSheet, Text, TouchableOpacity, View } from "react-native";
+import { ActivityIndicator, ScrollView, StyleSheet, Text, TouchableOpacity, View } from "react-native";
 import { COLORS, RADIUS, SPACING } from "../src/constants/config";
 import { useCats } from "../src/hooks/useCats";
 
@@ -11,13 +11,16 @@ export default function HomeScreen() {
 
   return (
     <ScrollView style={styles.container} contentContainerStyle={styles.content}>
-      {/* Personal Cat placeholder - swappable later for Rive animation */}
       <View style={styles.personalCatCard}>
         <Text style={styles.personalCatText}>🐱 Personal Cat Coming Soon</Text>
       </View>
 
       <View style={styles.statsCard}>
-        <Text style={styles.statsNumber}>{loading ? "..." : cats.length}</Text>
+        {loading ? (
+          <ActivityIndicator size="small" color={COLORS.primary} />
+        ) : (
+          <Text style={styles.statsNumber}>{cats.length}</Text>
+        )}
         <Text style={styles.statsLabel}>Cats Collected</Text>
       </View>
 
@@ -38,14 +41,17 @@ export default function HomeScreen() {
         <Text style={styles.buttonText}>⚙️ Settings</Text>
       </TouchableOpacity>
 
-      {recentCats.length > 0 && (
-        <View style={styles.recentSection}>
-          <Text style={styles.sectionTitle}>Recently Added</Text>
-          {recentCats.map((cat) => (
-            <Text key={cat.id} style={styles.recentItem}>• {cat.name}</Text>
-          ))}
-        </View>
-      )}
+      <View style={styles.recentSection}>
+        <Text style={styles.sectionTitle}>Recently Added</Text>
+        {!loading && recentCats.length === 0 && (
+          <Text style={styles.emptyText}>
+            No cats yet — go find one and tap Camera to add your first!
+          </Text>
+        )}
+        {recentCats.map((cat) => (
+          <Text key={cat.id} style={styles.recentItem}>• {cat.name}</Text>
+        ))}
+      </View>
     </ScrollView>
   );
 }
@@ -71,9 +77,11 @@ const styles = StyleSheet.create({
     padding: SPACING.md,
     alignItems: "center",
     marginBottom: SPACING.md,
+    minHeight: 76,
+    justifyContent: "center",
   },
   statsNumber: { fontSize: 32, fontWeight: "bold", color: COLORS.primary },
-  statsLabel: { fontSize: 14, color: COLORS.textMuted },
+  statsLabel: { fontSize: 14, color: COLORS.textMuted, marginTop: SPACING.xs },
   buttonRow: { flexDirection: "row", gap: SPACING.sm, marginBottom: SPACING.sm },
   button: {
     flex: 1,
@@ -92,5 +100,6 @@ const styles = StyleSheet.create({
   buttonText: { color: "#fff", fontWeight: "600", fontSize: 15 },
   recentSection: { marginTop: SPACING.md },
   sectionTitle: { fontSize: 16, fontWeight: "bold", marginBottom: SPACING.sm, color: COLORS.text },
+  emptyText: { fontSize: 14, color: COLORS.textMuted, fontStyle: "italic" },
   recentItem: { fontSize: 14, color: COLORS.text, marginBottom: SPACING.xs },
 });
