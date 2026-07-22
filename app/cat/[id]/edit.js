@@ -10,6 +10,7 @@ import {
   TouchableOpacity,
   View,
 } from "react-native";
+import AppModal from "../../../src/components/AppModal";
 import { COLORS, RADIUS, SPACING } from "../../../src/constants/config";
 import { useCats } from "../../../src/hooks/useCats";
 import { getCatById } from "../../../src/services/database/catQueries";
@@ -26,6 +27,7 @@ export default function EditCatScreen() {
   const [dateFound, setDateFound] = useState("");
   const [isFavorite, setIsFavorite] = useState(false);
   const [saving, setSaving] = useState(false);
+  const [showSuccessModal, setShowSuccessModal] = useState(false);
 
   useEffect(() => {
     (async () => {
@@ -53,7 +55,7 @@ export default function EditCatScreen() {
         dateFound,
         isFavorite,
       });
-      router.back();
+      setShowSuccessModal(true);
     } catch (err) {
       Alert.alert("Save Failed", err.message);
     } finally {
@@ -102,6 +104,20 @@ export default function EditCatScreen() {
           <Text style={styles.buttonText}>{saving ? "Saving..." : "Save Changes"}</Text>
         </TouchableOpacity>
       </ScrollView>
+      <AppModal
+        visible={showSuccessModal}
+        title="Changes Saved"
+        message="Your cat's details have been updated."
+        actions={[
+          {
+            label: "OK",
+            onPress: () => {
+              setShowSuccessModal(false);
+              router.back();
+            },
+          },
+        ]}
+      />
     </KeyboardAvoidingView>
   );
 }
