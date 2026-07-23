@@ -1,6 +1,7 @@
 import { useFocusEffect, useLocalSearchParams, useRouter } from "expo-router";
 import { useCallback, useState } from "react";
-import { Alert, Image, ScrollView, StyleSheet, Text, TouchableOpacity, View } from "react-native";
+import { Image, ScrollView, StyleSheet, Text, TouchableOpacity, View } from "react-native";
+import AppModal from "../../src/components/AppModal";
 import { COLORS, RADIUS, SPACING } from "../../src/constants/config";
 import { useCats } from "../../src/hooks/useCats";
 import { getCatById } from "../../src/services/database/catQueries";
@@ -12,6 +13,7 @@ export default function CatDetailScreen() {
   const { id } = useLocalSearchParams();
   const { removeCat } = useCats();
   const [cat, setCat] = useState(null);
+  const [showDeleteModal, setShowDeleteModal] = useState(false);
 
   const loadCat = useCallback(async () => {
     const data = await getCatById(Number(id));
@@ -27,17 +29,13 @@ export default function CatDetailScreen() {
   );
 
   function handleDelete() {
-    Alert.alert("Delete Cat", `Are you sure you want to delete ${cat.name}?`, [
-      { text: "Cancel", style: "cancel" },
-      {
-        text: "Delete",
-        style: "destructive",
-        onPress: async () => {
-          await removeCat(cat);
-          router.replace("/catdex");
-        },
-      },
-    ]);
+    setShowDeleteModal(true);
+  }
+
+  async function confirmDelete() {
+    setShowDeleteModal(false);
+    await removeCat(cat);
+    router.replace("/catdex");
   }
 
   if (!cat) {
@@ -49,40 +47,51 @@ export default function CatDetailScreen() {
   }
 
   return (
-    <ScrollView style={styles.container} contentContainerStyle={{ padding: SPACING.md }}>
-      <Image source={{ uri: getFullUri(cat.sticker_photo_path) }} style={styles.mainImage} />
+    <View style={{ flex: 1 }}>
+      <ScrollView style={styles.container} contentContainerStyle={{ padding: SPACING.md }}>
+        <Image source={{ uri: getFullUri(cat.sticker_photo_path) }} style={styles.mainImage} />
 
-      <Text style={styles.name}>{cat.is_favorite ? "★ " : ""}{cat.name}</Text>
-      {!!cat.description && <Text style={styles.description}>{cat.description}</Text>}
+        <Text style={styles.name}>{cat.is_favorite ? "★ " : ""}{cat.name}</Text>
+        {!!cat.description && <Text style={styles.description}>{cat.description}</Text>}
 
-      <Text style={styles.label}>Date Found</Text>
-      <Text style={styles.value}>{formatDateForDisplay(cat.date_found)}</Text>
+        <Text style={styles.label}>Date Found</Text>
+        <Text style={styles.value}>{formatDateForDisplay(cat.date_found)}</Text>
 
-      {!!cat.notes && (
-        <>
-          <Text style={styles.label}>Notes</Text>
-          <Text style={styles.value}>{cat.notes}</Text>
-        </>
-      )}
+        {!!cat.notes && (
+          <>
+            <Text style={styles.label}>Notes</Text>
+            <Text style={styles.value}>{cat.notes}</Text>
+          </>
+        )}
 
-      <Text style={styles.label}>Original Photo</Text>
-      <Image source={{ uri: getFullUri(cat.original_photo_path) }} style={styles.originalImage} />
+        <Text style={styles.label}>Original Photo</Text>
+        <Image source={{ uri: getFullUri(cat.original_photo_path) }} style={styles.originalImage} />
 
-      <View style={styles.buttonRow}>
-        <TouchableOpacity
-          style={[styles.button, styles.editButton]}
-          onPress={() => router.push(`/cat/${cat.id}/edit`)}
-        >
-          <Text style={styles.buttonText}>Edit</Text>
-        </TouchableOpacity>
-        <TouchableOpacity
-          style={[styles.button, styles.deleteButton]}
-          onPress={handleDelete}
-        >
-          <Text style={styles.buttonText}>Delete</Text>
-        </TouchableOpacity>
-      </View>
-    </ScrollView>
+        <View style={styles.buttonRow}>
+          <TouchableOpacity
+            style={[styles.button, styles.editButton]}
+            onPress={() => router.push(`/cat/${cat.id}/edit`)}
+          >
+            <Text style={styles.buttonText}>Edit</Text>
+          </TouchableOpacity>
+          <TouchableOpacity
+            style={[styles.button, styles.deleteButton]}
+            onPress={handleDelete}
+          >
+            <Text style={styles.buttonText}>Delete</Text>
+          </TouchableOpacity>
+        </View>
+      </ScrollView>
+      <AppModal
+        visible={showDeleteModal}
+        title="Delete Cat"
+        message={`Are you sure you want to delete ${cat?.name}? This can't be undone.`}
+        actions={[
+          { label: "Cancel", style: "secondary", onPress: () => setShowDeleteModal(false) },
+          { label: "Delete", style: "danger", onPress: confirmDelete },
+        ]}
+      />
+    </View>
   );
 }
 
