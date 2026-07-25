@@ -7,9 +7,12 @@ export const COLORS = {
   background: "#F8F9FA",
   card: "#FFFFFF",
   primary: "#FF8C42",
+  primaryDark: "#D9701F",
   text: "#1F2937",
   textMuted: "#6B7280",
   border: "#E5E7EB",
+  favorite: "#E76F51",
+  danger: "#DC2626",
 };
 
 export const SPACING = {

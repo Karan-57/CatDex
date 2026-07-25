@@ -14,7 +14,12 @@ async function ensureFolderExists(folderName) {
 // Returns a RELATIVE path (folder/filename.jpg) to store in the DB.
 export async function saveImageToStorage(tempUri, folderName) {
   const dir = await ensureFolderExists(folderName);
-  const filename = `${Date.now()}.jpg`;
+  // Preserve the actual file extension from the source URI, defaulting
+  // to jpg if none is found. This matters because stickers are PNGs
+  // (need transparency) while originals are typically JPEGs.
+  const extMatch = tempUri.match(/\.(\w+)$/);
+  const extension = extMatch ? extMatch[1] : "jpg";
+  const filename = `${Date.now()}.${extension}`;
   const destUri = dir + filename;
   await FileSystem.copyAsync({ from: tempUri, to: destUri });
   return `${folderName}/${filename}`;
