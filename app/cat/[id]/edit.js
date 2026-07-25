@@ -109,6 +109,7 @@ export default function EditCatScreen() {
         visible={showSuccessModal}
         title="Changes Saved"
         message="Your cat's details have been updated."
+        onClose={() => setShowSuccessModal(false)}
         actions={[
           {
             label: "OK",

@@ -85,6 +85,7 @@ export default function CatDetailScreen() {
       <AppModal
         visible={showDeleteModal}
         title="Delete Cat"
+        onClose={() => setShowDeleteModal(false)}
         message={`Are you sure you want to delete ${cat?.name}? This can't be undone.`}
         actions={[
           { label: "Cancel", style: "secondary", onPress: () => setShowDeleteModal(false) },

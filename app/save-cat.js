@@ -111,6 +111,7 @@ async function handleSave() {
         visible={showSuccessModal}
         title="Cat Saved"
         message={`${name.trim()} has been added to your CatDex.`}
+        onClose={() => setShowSuccessModal(false)}
         actions={[
           {
             label: "OK",

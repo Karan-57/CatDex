@@ -24,4 +24,16 @@ export async function initDatabase() {
       created_at TEXT NOT NULL
     );
   `);
+
+  await db.execAsync(`
+    CREATE TABLE IF NOT EXISTS pet_state (
+      id INTEGER PRIMARY KEY CHECK (id = 1),
+      name TEXT NOT NULL,
+      happiness INTEGER DEFAULT 100,
+      hunger INTEGER DEFAULT 100,
+      last_updated TEXT NOT NULL,
+      created_at TEXT NOT NULL
+    );
+  `);
+  
 }
