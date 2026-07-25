@@ -29,8 +29,13 @@ export async function initDatabase() {
     CREATE TABLE IF NOT EXISTS pet_state (
       id INTEGER PRIMARY KEY CHECK (id = 1),
       name TEXT NOT NULL,
-      happiness INTEGER DEFAULT 100,
-      hunger INTEGER DEFAULT 100,
+      stage TEXT NOT NULL DEFAULT 'kitten',
+      level INTEGER NOT NULL DEFAULT 1,
+      xp INTEGER NOT NULL DEFAULT 0,
+      hunger INTEGER NOT NULL DEFAULT 100,
+      sleep INTEGER NOT NULL DEFAULT 100,
+      happiness INTEGER NOT NULL DEFAULT 100,
+      fish_tokens INTEGER NOT NULL DEFAULT 0,
       last_updated TEXT NOT NULL,
       created_at TEXT NOT NULL
     );

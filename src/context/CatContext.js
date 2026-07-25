@@ -1,10 +1,10 @@
 import { createContext, useEffect, useReducer } from "react";
 import { catReducer, initialState } from "../reducers/catReducer";
 import {
-    deleteCat as deleteCatQuery,
-    getAllCats,
-    insertCat,
-    updateCat as updateCatQuery,
+  deleteCat as deleteCatQuery,
+  getAllCats,
+  insertCat,
+  updateCat as updateCatQuery,
 } from "../services/database/catQueries";
 import { initDatabase } from "../services/database/db";
 import { deleteImageFromStorage } from "../services/storage/fileStorage";
@@ -31,7 +31,11 @@ export function CatProvider({ children }) {
 
   async function editCat(id, updates) {
     await updateCatQuery(id, updates);
-    const updated = { id, ...mapToDbShape(updates) };
+    // Merge with the existing cat instead of replacing it entirely,
+    // so fields not part of the edit form (photo paths, created_at)
+    // are preserved in the in-memory state.
+    const existingCat = state.cats.find((c) => c.id === id);
+    const updated = { ...existingCat, ...mapToDbShape(updates) };
     dispatch({ type: "UPDATE_CAT", payload: updated });
   }
 
