@@ -38,7 +38,7 @@ export default function CatDexScreen() {
         style={styles.searchInput}
         placeholder="Search cats..."
         value={search}
-        onChangeText={setSearch}
+        onChangeText={setSearch}placeholderTextColor={COLORS.textMuted}
       />
 
       <TouchableOpacity

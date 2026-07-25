@@ -75,10 +75,10 @@ export default function EditCatScreen() {
     <KeyboardAvoidingView style={{ flex: 1 }} behavior={Platform.OS === "ios" ? "padding" : undefined}>
       <ScrollView style={styles.container} contentContainerStyle={{ padding: SPACING.md }}>
         <Text style={styles.label}>Name</Text>
-        <TextInput style={styles.input} value={name} onChangeText={setName} />
+        <TextInput style={styles.input} value={name} onChangeText={setName} placeholderTextColor={COLORS.textMuted}/>
 
         <Text style={styles.label}>One-word Description</Text>
-        <TextInput style={styles.input} value={description} onChangeText={setDescription} />
+        <TextInput style={styles.input} value={description} onChangeText={setDescription} placeholderTextColor={COLORS.textMuted}/>
 
         <Text style={styles.label}>Notes</Text>
         <TextInput
@@ -86,10 +86,11 @@ export default function EditCatScreen() {
           value={notes}
           onChangeText={setNotes}
           multiline
+          placeholderTextColor={COLORS.textMuted}
         />
 
         <Text style={styles.label}>Date Found (YYYY-MM-DD)</Text>
-        <TextInput style={styles.input} value={dateFound} onChangeText={setDateFound} />
+        <TextInput style={styles.input} value={dateFound} onChangeText={setDateFound} placeholderTextColor={COLORS.textMuted}/>
 
         <View style={styles.favoriteRow}>
           <Text style={styles.label}>Favorite</Text>

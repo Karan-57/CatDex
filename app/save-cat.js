@@ -72,6 +72,7 @@ async function handleSave() {
           value={name}
           onChangeText={setName}
           placeholder="e.g. Whiskers"
+          placeholderTextColor={COLORS.textMuted}
         />
 
         <Text style={styles.label}>One-word Description</Text>
@@ -80,6 +81,7 @@ async function handleSave() {
           value={description}
           onChangeText={setDescription}
           placeholder="e.g. Fluffy"
+          placeholderTextColor={COLORS.textMuted}
         />
 
         <Text style={styles.label}>Notes</Text>
@@ -89,6 +91,7 @@ async function handleSave() {
           onChangeText={setNotes}
           placeholder="Anything memorable about this cat..."
           multiline
+          placeholderTextColor={COLORS.textMuted}
         />
 
         <View style={styles.favoriteRow}>
