@@ -2,7 +2,8 @@ import { getDb } from "../database/db";
 
 /**
  * Returns the single pet row, or null if no pet has been created yet.
- * We use id=1 always, since the schema enforces only one pet can ever exist.
+ * We always use id=1, since the schema's CHECK(id=1) guarantees only
+ * one pet can ever exist.
  */
 export async function getPet() {
   const db = await getDb();
@@ -11,28 +12,45 @@ export async function getPet() {
 }
 
 /**
- * Creates the pet for the first time. Can only succeed once, since the
- * table's CHECK(id=1) constraint blocks a second row from ever existing.
+ * Creates the pet for the first time (e.g. when the user names their
+ * pet on first app launch). Can only succeed once — a second insert
+ * with id=1 will fail due to the primary key constraint.
  */
 export async function createPet(name) {
   const db = await getDb();
   const now = new Date().toISOString();
   await db.runAsync(
-    `INSERT INTO pet_state (id, name, happiness, hunger, last_updated, created_at)
-     VALUES (1, ?, 100, 100, ?, ?);`,
+    `INSERT INTO pet_state
+      (id, name, stage, level, xp, hunger, sleep, happiness, fish_tokens, last_updated, created_at)
+     VALUES (1, ?, 'kitten', 1, 0, 100, 100, 100, 0, ?, ?);`,
     [name, now, now]
   );
   return await getPet();
 }
 
 /**
- * Updates the pet's stats (happiness/hunger) and refreshes last_updated.
+ * Generic updater for the pet's full state. Takes a partial object of
+ * whichever fields changed and writes them all in one query. Always
+ * refreshes last_updated so we can later calculate time-based decay
+ * (e.g. "how many hours since last opened the app").
  */
-export async function updatePetStats(happiness, hunger) {
+export async function updatePetState(updates) {
   const db = await getDb();
   const now = new Date().toISOString();
+
   await db.runAsync(
-    `UPDATE pet_state SET happiness = ?, hunger = ?, last_updated = ? WHERE id = 1;`,
-    [happiness, hunger, now]
+    `UPDATE pet_state
+     SET stage = ?, level = ?, xp = ?, hunger = ?, sleep = ?, happiness = ?, fish_tokens = ?, last_updated = ?
+     WHERE id = 1;`,
+    [
+      updates.stage,
+      updates.level,
+      updates.xp,
+      updates.hunger,
+      updates.sleep,
+      updates.happiness,
+      updates.fishTokens,
+      now,
+    ]
   );
 }
