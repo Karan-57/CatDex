@@ -1,7 +1,10 @@
 import { useRouter } from "expo-router";
-import { ActivityIndicator, ScrollView, StyleSheet, Text, TouchableOpacity, View } from "react-native";
-import { COLORS, RADIUS, SPACING } from "../src/constants/config";
-import { useCats } from "../src/hooks/useCats";
+import React from "react";
+import { ActivityIndicator, Dimensions, ScrollView, StyleSheet, Text, TouchableOpacity, View } from "react-native";
+import { COLORS, RADIUS, SPACING } from "../../src/constants/config";
+import { useCats } from "../../src/hooks/useCats";
+
+const SCREEN_HEIGHT = Dimensions.get("window").height;
 
 export default function HomeScreen() {
   const router = useRouter();
@@ -11,6 +14,11 @@ export default function HomeScreen() {
 
   return (
     <ScrollView style={styles.container} contentContainerStyle={styles.content}>
+      {/* Placeholder status bar - content TBD */}
+      <View style={styles.statusBar}>
+        <Text style={styles.statusBarText}>Status Bar Placeholder</Text>
+      </View>
+
       <View style={styles.personalCatCard}>
         <Text style={styles.personalCatText}>🐱 Personal Cat Coming Soon</Text>
       </View>
@@ -24,32 +32,21 @@ export default function HomeScreen() {
         <Text style={styles.statsLabel}>Cats Collected</Text>
       </View>
 
-      <View style={styles.buttonRow}>
-        <TouchableOpacity style={styles.button} onPress={() => router.push("/camera")}>
-          <Text style={styles.buttonText}>📷 Camera</Text>
-        </TouchableOpacity>
-        <TouchableOpacity style={styles.button} onPress={() => router.push("/camera?mode=gallery")}>
-          <Text style={styles.buttonText}>🖼️ Gallery</Text>
-        </TouchableOpacity>
-      </View>
-
-      <TouchableOpacity style={styles.wideButton} onPress={() => router.push("/catdex")}>
-        <Text style={styles.buttonText}>📖 CatDex Collection</Text>
-      </TouchableOpacity>
-
-      <TouchableOpacity style={styles.wideButton} onPress={() => router.push("/settings")}>
-        <Text style={styles.buttonText}>⚙️ Settings</Text>
-      </TouchableOpacity>
-
       <View style={styles.recentSection}>
         <Text style={styles.sectionTitle}>Recently Added</Text>
         {!loading && recentCats.length === 0 && (
           <Text style={styles.emptyText}>
-            No cats yet — go find one and tap Camera to add your first!
+            No cats yet — tap the + button below to add your first!
           </Text>
         )}
         {recentCats.map((cat) => (
-          <Text key={cat.id} style={styles.recentItem}>• {cat.name}</Text>
+          <TouchableOpacity
+            key={cat.id}
+            style={styles.recentRow}
+            onPress={() => router.push(`/cat/${cat.id}`)}
+          >
+            <Text style={styles.recentItem}>{cat.name}</Text>
+          </TouchableOpacity>
         ))}
       </View>
     </ScrollView>
@@ -59,6 +56,16 @@ export default function HomeScreen() {
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: COLORS.background },
   content: { padding: SPACING.md },
+  statusBar: {
+    backgroundColor: COLORS.card,
+    borderRadius: RADIUS.md,
+    padding: SPACING.sm,
+    alignItems: "center",
+    marginBottom: SPACING.md,
+    borderWidth: 1,
+    borderColor: COLORS.border,
+  },
+  statusBarText: { fontSize: 13, color: COLORS.textMuted },
   personalCatCard: {
     backgroundColor: COLORS.card,
     borderRadius: RADIUS.lg,
@@ -66,7 +73,7 @@ const styles = StyleSheet.create({
     alignItems: "center",
     justifyContent: "center",
     marginBottom: SPACING.md,
-    minHeight: 160,
+    height: SCREEN_HEIGHT * 0.5,
     borderWidth: 1,
     borderColor: COLORS.border,
   },
@@ -82,24 +89,12 @@ const styles = StyleSheet.create({
   },
   statsNumber: { fontSize: 32, fontWeight: "bold", color: COLORS.primary },
   statsLabel: { fontSize: 14, color: COLORS.textMuted, marginTop: SPACING.xs },
-  buttonRow: { flexDirection: "row", gap: SPACING.sm, marginBottom: SPACING.sm },
-  button: {
-    flex: 1,
-    backgroundColor: COLORS.primary,
-    borderRadius: RADIUS.md,
-    padding: SPACING.md,
-    alignItems: "center",
-  },
-  wideButton: {
-    backgroundColor: COLORS.primary,
-    borderRadius: RADIUS.md,
-    padding: SPACING.md,
-    alignItems: "center",
-    marginBottom: SPACING.sm,
-  },
-  buttonText: { color: "#fff", fontWeight: "600", fontSize: 15 },
   recentSection: { marginTop: SPACING.md },
   sectionTitle: { fontSize: 16, fontWeight: "bold", marginBottom: SPACING.sm, color: COLORS.text },
-  emptyText: { fontSize: 14, color: COLORS.textMuted, fontStyle: "italic" },
-  recentItem: { fontSize: 14, color: COLORS.text, marginBottom: SPACING.xs },
+  emptyText: { fontSize: 14, color: COLORS.textMuted, fontStyle: "italic" },recentRow: {
+  paddingVertical: SPACING.sm,
+  borderBottomWidth: 1,
+  borderBottomColor: COLORS.border,
+},
+recentItem: { fontSize: 14, color: COLORS.text },
 });

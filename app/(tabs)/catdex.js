@@ -1,9 +1,9 @@
 import { useRouter } from "expo-router";
 import { useState } from "react";
 import { FlatList, Image, StyleSheet, Text, TextInput, TouchableOpacity, View } from "react-native";
-import { COLORS, RADIUS, SPACING } from "../src/constants/config";
-import { useCats } from "../src/hooks/useCats";
-import { getFullUri } from "../src/services/storage/fileStorage";
+import { COLORS, RADIUS, SPACING } from "../../src/constants/config";
+import { useCats } from "../../src/hooks/useCats";
+import { getFullUri } from "../../src/services/storage/fileStorage";
 
 export default function CatDexScreen() {
   const router = useRouter();

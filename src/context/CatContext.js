@@ -31,11 +31,17 @@ export function CatProvider({ children }) {
 
   async function editCat(id, updates) {
     await updateCatQuery(id, updates);
-    // Merge with the existing cat instead of replacing it entirely,
-    // so fields not part of the edit form (photo paths, created_at)
-    // are preserved in the in-memory state.
     const existingCat = state.cats.find((c) => c.id === id);
-    const updated = { ...existingCat, ...mapToDbShape(updates) };
+
+    // Only merge in fields that were actually provided, so undefined
+    // values from unrelated fields (like photo paths, which the edit
+    // form never sends) don't overwrite real data already in memory.
+    const mapped = mapToDbShape(updates);
+    const definedFields = Object.fromEntries(
+      Object.entries(mapped).filter(([, value]) => value !== undefined)
+    );
+
+    const updated = { ...existingCat, ...definedFields };
     dispatch({ type: "UPDATE_CAT", payload: updated });
   }
 

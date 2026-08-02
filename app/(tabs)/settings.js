@@ -2,9 +2,9 @@ import * as Google from "expo-auth-session/providers/google";
 import * as WebBrowser from "expo-web-browser";
 import { useState } from "react";
 import { Alert, StyleSheet, Text, TouchableOpacity, View } from "react-native";
-import { COLORS, GOOGLE_CLIENT_ID, RADIUS, SPACING } from "../src/constants/config";
-import { exportBackup, importBackup } from "../src/services/backup/backupService";
-import { downloadBackupFromDrive, uploadBackupToDrive } from "../src/services/backup/googleDriveService";
+import { COLORS, GOOGLE_CLIENT_ID, RADIUS, SPACING } from "../../src/constants/config";
+import { exportBackup, importBackup } from "../../src/services/backup/backupService";
+import { downloadBackupFromDrive, uploadBackupToDrive } from "../../src/services/backup/googleDriveService";
 
 WebBrowser.maybeCompleteAuthSession();
 

@@ -20,7 +20,7 @@ export default function FavoritesScreen() {
         ListEmptyComponent={
           <View style={styles.emptyContainer}>
             <Text style={styles.emptyText}>
-              No favorites yet. Tap the star on a cat's detail page to add one.
+              No favorites yet. Tap the star on detail page to add one.
             </Text>
           </View>
         }

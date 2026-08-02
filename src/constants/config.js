@@ -3,16 +3,22 @@ export const STORAGE_FOLDERS = {
   ORIGINALS: "cat_originals",
   STICKERS: "cat_stickers",
 };
+
+
 export const COLORS = {
-  background: "#F8F9FA",
-  card: "#FFFFFF",
-  primary: "#FF8C42",
-  primaryDark: "#D9701F",
-  text: "#1F2937",
-  textMuted: "#6B7280",
-  border: "#E5E7EB",
-  favorite: "#E76F51",
-  danger: "#DC2626",
+  background: "#FAF5EE",
+  card: "#FFF8F0",
+  primary: "#8B5E3C",
+  primaryDark: "#6E4A2F",
+  secondary: "#A67C52",
+  accent: "#E6CBA8",
+  text: "#3E2F23",
+  textMuted: "#7A6652",
+  border: "#EADCC6",
+  success: "#7CA66A",
+  warning: "#F0A35E",
+  favorite: "#F0A35E",
+  danger: "#C0392B",
 };
 
 export const SPACING = {

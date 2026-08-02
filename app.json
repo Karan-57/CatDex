@@ -8,6 +8,12 @@
     "scheme": "catdex",
     "userInterfaceStyle": "automatic",
     "newArchEnabled": true,
+    "runtimeVersion": {
+        "policy": "appVersion"
+      },
+      "updates": {
+        "url": "https://u.expo.dev/f18ca7f9-cccb-47a4-a9cc-52ace56d6425"
+    },
     "ios": {
       "supportsTablet": true
     },
