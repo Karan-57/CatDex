@@ -1,6 +1,7 @@
 import { useRouter } from "expo-router";
 import React from "react";
 import { ActivityIndicator, Dimensions, ScrollView, StyleSheet, Text, TouchableOpacity, View } from "react-native";
+import PersonalCatSlot from "../../src/components/home/PersonalCatSlot";
 import { COLORS, RADIUS, SPACING } from "../../src/constants/config";
 import { useCats } from "../../src/hooks/useCats";
 
@@ -20,7 +21,7 @@ export default function HomeScreen() {
       </View>
 
       <View style={styles.personalCatCard}>
-        <Text style={styles.personalCatText}>🐱 Personal Cat Coming Soon</Text>
+        <PersonalCatSlot />
       </View>
 
       <View style={styles.statsCard}>
