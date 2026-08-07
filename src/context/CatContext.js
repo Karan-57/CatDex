@@ -6,7 +6,6 @@ import {
   insertCat,
   updateCat as updateCatQuery,
 } from "../services/database/catQueries";
-import { initDatabase } from "../services/database/db";
 import { deleteImageFromStorage } from "../services/storage/fileStorage";
 
 export const CatContext = createContext(null);
@@ -16,7 +15,6 @@ export function CatProvider({ children }) {
 
   useEffect(() => {
     (async () => {
-      await initDatabase();
       const cats = await getAllCats();
       dispatch({ type: "SET_CATS", payload: cats });
     })();
