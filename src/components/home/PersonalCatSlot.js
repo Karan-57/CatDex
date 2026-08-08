@@ -45,9 +45,12 @@ export default function PersonalCatSlot() {
   }
 
   return (
-    <TouchableOpacity activeOpacity={0.9} onPress={() => setShowRename(true)} style={{ flex: 1 }}>
+    <View style={{ flex: 1 }}>
       <PetDisplay pet={pet} />
-    </TouchableOpacity>
+      <TouchableOpacity style={styles.renameHint} onPress={() => setShowRename(true)}>
+        <Text style={styles.renameHintText}>✏️ Rename</Text>
+      </TouchableOpacity>
+    </View>
   );
 }
 
@@ -79,6 +82,18 @@ const styles = StyleSheet.create({
     paddingHorizontal: SPACING.xl,
     borderRadius: RADIUS.md,
   },
+  renameHint: {
+    position: "absolute",
+    top: SPACING.xs,
+    right: SPACING.xs,
+    backgroundColor: COLORS.background,
+    paddingVertical: 4,
+    paddingHorizontal: SPACING.sm,
+    borderRadius: RADIUS.sm,
+    borderWidth: 1,
+    borderColor: COLORS.border,
+  },
+  renameHintText: { fontSize: 11, color: COLORS.textMuted },
   buttonDisabled: { opacity: 0.5 },
   buttonText: { color: "#fff", fontWeight: "600" },
 });

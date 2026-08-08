@@ -1,11 +1,10 @@
-import { Image, StyleSheet, Text, View } from "react-native";
+import React from "react";
+import { Alert, Image, StyleSheet, Text, TouchableOpacity, View } from "react-native";
 import { COLORS, RADIUS, SPACING } from "../../constants/config";
-import { xpRequiredForLevel } from "../../services/pet/petConstants";
+import { usePet } from "../../hooks/usePet";
+import { FEED_COST_FISH, xpRequiredForLevel } from "../../services/pet/petConstants";
 import { deriveEmotion } from "../../services/pet/petLogic";
 
-// Static require() map — React Native needs image sources to be resolvable
-// at bundle time, so this can't be built dynamically from a string.
-// Adding teen/adult art later just means adding more entries here.
 const PET_IMAGES = {
   kitten: {
     content: require("../../../assets/pet/kitten/content.png"),
@@ -17,12 +16,21 @@ const PET_IMAGES = {
 };
 
 export default function PetDisplay({ pet }) {
+  const { feedPet, playWithPet, putPetToSleep } = usePet();
+
   const emotion = deriveEmotion(pet);
   const stageImages = PET_IMAGES[pet.stage] || PET_IMAGES.kitten;
   const imageSource = stageImages[emotion] || stageImages.content;
 
   const xpNeeded = xpRequiredForLevel(pet.level);
   const xpProgress = Math.min(pet.xp / xpNeeded, 1);
+
+  async function handleFeed() {
+    const success = await feedPet();
+    if (!success) {
+      Alert.alert("Not Enough Fish", `You need ${FEED_COST_FISH} fish to feed your cat. Collect more cats to earn fish!`);
+    }
+  }
 
   return (
     <View style={styles.card}>
@@ -44,6 +52,12 @@ export default function PetDisplay({ pet }) {
       </View>
 
       <Text style={styles.fishText}>🐟 {pet.fish_tokens}</Text>
+
+      <View style={styles.actionRow}>
+        <ActionButton label="Feed" onPress={handleFeed} />
+        <ActionButton label="Play" onPress={playWithPet} />
+        <ActionButton label="Sleep" onPress={putPetToSleep} />
+      </View>
     </View>
   );
 }
@@ -59,6 +73,14 @@ function StatBar({ label, value, color }) {
   );
 }
 
+function ActionButton({ label, onPress }) {
+  return (
+    <TouchableOpacity style={styles.actionButton} onPress={onPress}>
+      <Text style={styles.actionButtonText}>{label}</Text>
+    </TouchableOpacity>
+  );
+}
+
 const styles = StyleSheet.create({
   card: {
     backgroundColor: COLORS.card,
@@ -70,7 +92,7 @@ const styles = StyleSheet.create({
     height: "100%",
     justifyContent: "center",
   },
-  petImage: { width: "70%", height: "50%" },
+  petImage: { width: "60%", height: "38%" },
   name: { fontSize: 20, fontWeight: "bold", color: COLORS.text, marginTop: SPACING.sm },
   levelText: { fontSize: 13, color: COLORS.textMuted, marginBottom: SPACING.sm },
   xpBarTrack: {
@@ -94,4 +116,12 @@ const styles = StyleSheet.create({
   },
   statFill: { height: "100%" },
   fishText: { marginTop: SPACING.sm, fontSize: 13, color: COLORS.text },
+  actionRow: { flexDirection: "row", gap: SPACING.sm, marginTop: SPACING.md },
+  actionButton: {
+    backgroundColor: COLORS.primary,
+    paddingVertical: SPACING.xs,
+    paddingHorizontal: SPACING.md,
+    borderRadius: RADIUS.sm,
+  },
+  actionButtonText: { color: "#fff", fontWeight: "600", fontSize: 13 },
 });
