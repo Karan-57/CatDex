@@ -1,15 +1,19 @@
 import { useRouter } from "expo-router";
 import React from "react";
 import { ActivityIndicator, Dimensions, ScrollView, StyleSheet, Text, TouchableOpacity, View } from "react-native";
+import AppModal from "../../src/components/AppModal";
 import PersonalCatSlot from "../../src/components/home/PersonalCatSlot";
 import { COLORS, RADIUS, SPACING } from "../../src/constants/config";
 import { useCats } from "../../src/hooks/useCats";
+import { usePet } from "../../src/hooks/usePet";
+import { DAILY_FISH_BONUS } from "../../src/services/pet/petConstants";
 
 const SCREEN_HEIGHT = Dimensions.get("window").height;
 
 export default function HomeScreen() {
   const router = useRouter();
   const { cats, loading } = useCats();
+  const { dailyBonusClaimed, dismissDailyBonusNotice } = usePet();
 
   const recentCats = cats.slice(0, 5);
 
@@ -50,6 +54,14 @@ export default function HomeScreen() {
           </TouchableOpacity>
         ))}
       </View>
+
+      <AppModal
+        visible={dailyBonusClaimed}
+        title="Daily Bonus!"
+        message={`You earned ${DAILY_FISH_BONUS} fish for opening CatDex today.`}
+        onClose={dismissDailyBonusNotice}
+        actions={[{ label: "Nice!", onPress: dismissDailyBonusNotice }]}
+      />
     </ScrollView>
   );
 }
@@ -92,10 +104,11 @@ const styles = StyleSheet.create({
   statsLabel: { fontSize: 14, color: COLORS.textMuted, marginTop: SPACING.xs },
   recentSection: { marginTop: SPACING.md },
   sectionTitle: { fontSize: 16, fontWeight: "bold", marginBottom: SPACING.sm, color: COLORS.text },
-  emptyText: { fontSize: 14, color: COLORS.textMuted, fontStyle: "italic" },recentRow: {
-  paddingVertical: SPACING.sm,
-  borderBottomWidth: 1,
-  borderBottomColor: COLORS.border,
-},
-recentItem: { fontSize: 14, color: COLORS.text },
+  emptyText: { fontSize: 14, color: COLORS.textMuted, fontStyle: "italic" },
+  recentRow: {
+    paddingVertical: SPACING.sm,
+    borderBottomWidth: 1,
+    borderBottomColor: COLORS.border,
+  },
+  recentItem: { fontSize: 14, color: COLORS.text },
 });

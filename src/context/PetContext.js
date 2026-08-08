@@ -1,4 +1,4 @@
-import { createContext, useEffect, useReducer } from "react";
+import { createContext, useEffect, useReducer, useState } from "react";
 import { initialPetState, petReducer } from "../reducers/petReducer";
 import {
   DAILY_FISH_BONUS,
@@ -19,19 +19,24 @@ export const PetContext = createContext(null);
 
 export function PetProvider({ children }) {
   const [state, dispatch] = useReducer(petReducer, initialPetState);
+  const [dailyBonusClaimed, setDailyBonusClaimed] = useState(false);
 
   useEffect(() => {
     (async () => {
       let existingPet = await getPet();
       if (!existingPet) {
-        // Every user gets a pet automatically — no adoption gate.
-        // Default name is a placeholder; the rename prompt in
-        // PersonalCatSlot lets the user personalize it anytime.
         existingPet = await createPet("Your Cat");
       }
       dispatch({ type: "SET_PET", payload: existingPet });
+
+      const claimed = await claimDailyBonusIfEligible(existingPet);
+      if (claimed) setDailyBonusClaimed(true);
     })();
   }, []);
+
+  function dismissDailyBonusNotice() {
+    setDailyBonusClaimed(false);
+  }
 
   /**
    * Lets the user rename their pet at any time (tap the pet display).
@@ -158,17 +163,20 @@ export function PetProvider({ children }) {
   /**
    * Simple daily login bonus: if last_updated was on a different
    * calendar day than today, award fish and refresh the timestamp.
+   * Accepts an optional pet override, needed when called from the mount
+   * effect where state.pet hasn't been set yet.
    */
-  async function claimDailyBonusIfEligible() {
-    if (!state.pet) return;
+  async function claimDailyBonusIfEligible(petOverride) {
+    const currentPet = petOverride || state.pet;
+    if (!currentPet) return false;
 
-    const lastUpdatedDate = new Date(state.pet.last_updated).toDateString();
+    const lastUpdatedDate = new Date(currentPet.last_updated).toDateString();
     const todayDate = new Date().toDateString();
 
     if (lastUpdatedDate !== todayDate) {
       const updatedPet = {
-        ...state.pet,
-        fish_tokens: state.pet.fish_tokens + DAILY_FISH_BONUS,
+        ...currentPet,
+        fish_tokens: currentPet.fish_tokens + DAILY_FISH_BONUS,
       };
       await updatePetState({
         name: updatedPet.name,
@@ -181,7 +189,9 @@ export function PetProvider({ children }) {
         fishTokens: updatedPet.fish_tokens,
       });
       dispatch({ type: "UPDATE_PET", payload: updatedPet });
+      return true;
     }
+    return false;
   }
 
   return (
@@ -195,6 +205,8 @@ export function PetProvider({ children }) {
         ticklePet,
         collectCatBonus,
         claimDailyBonusIfEligible,
+        dailyBonusClaimed,
+        dismissDailyBonusNotice,
       }}
     >
       {children}
