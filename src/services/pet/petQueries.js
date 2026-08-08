@@ -40,9 +40,10 @@ export async function updatePetState(updates) {
 
   await db.runAsync(
     `UPDATE pet_state
-     SET stage = ?, level = ?, xp = ?, hunger = ?, sleep = ?, happiness = ?, fish_tokens = ?, last_updated = ?
+     SET name = ?, stage = ?, level = ?, xp = ?, hunger = ?, sleep = ?, happiness = ?, fish_tokens = ?, last_updated = ?
      WHERE id = 1;`,
     [
+      updates.name,
       updates.stage,
       updates.level,
       updates.xp,

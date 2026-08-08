@@ -15,6 +15,7 @@ import {
 import AppModal from "../src/components/AppModal";
 import { COLORS, RADIUS, SPACING, STORAGE_FOLDERS } from "../src/constants/config";
 import { useCats } from "../src/hooks/useCats";
+import { usePet } from "../src/hooks/usePet";
 import { saveImageToStorage } from "../src/services/storage/fileStorage";
 import { todayString } from "../src/utils/dateUtils";
 
@@ -29,6 +30,8 @@ export default function SaveCatScreen() {
   const [isFavorite, setIsFavorite] = useState(false);
   const [saving, setSaving] = useState(false);
   const [showSuccessModal, setShowSuccessModal] = useState(false);
+  const { collectCatBonus } = usePet();
+  
 
 async function handleSave() {
   if (!name.trim()) {
@@ -49,6 +52,8 @@ async function handleSave() {
       originalPhotoPath: originalPath,
       stickerPhotoPath: stickerPath,
     });
+
+    await collectCatBonus();
 
     setShowSuccessModal(true);
   } catch (err) {

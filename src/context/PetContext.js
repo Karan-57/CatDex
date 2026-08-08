@@ -1,17 +1,17 @@
 import { createContext, useEffect, useReducer } from "react";
 import { initialPetState, petReducer } from "../reducers/petReducer";
 import {
-    DAILY_FISH_BONUS,
-    FEED_COST_FISH,
-    FISH_PER_CAT_COLLECTED,
-    STAT_RESTORE_AMOUNT,
+  DAILY_FISH_BONUS,
+  FEED_COST_FISH,
+  FISH_PER_CAT_COLLECTED,
+  STAT_RESTORE_AMOUNT,
 } from "../services/pet/petConstants";
 import {
-    applyXpGain,
-    calculateCollectCatXp,
-    calculateSmallActionXp,
-    clampStat,
-    deriveStage,
+  applyXpGain,
+  calculateCollectCatXp,
+  calculateSmallActionXp,
+  clampStat,
+  deriveStage,
 } from "../services/pet/petLogic";
 import { createPet, getPet, updatePetState } from "../services/pet/petQueries";
 
@@ -22,18 +22,36 @@ export function PetProvider({ children }) {
 
   useEffect(() => {
     (async () => {
-      const existingPet = await getPet();
+      let existingPet = await getPet();
+      if (!existingPet) {
+        // Every user gets a pet automatically — no adoption gate.
+        // Default name is a placeholder; the rename prompt in
+        // PersonalCatSlot lets the user personalize it anytime.
+        existingPet = await createPet("Your Cat");
+      }
       dispatch({ type: "SET_PET", payload: existingPet });
     })();
   }, []);
 
   /**
-   * Called once, the very first time the user names their pet.
+   * Lets the user rename their pet at any time (tap the pet display).
    */
-  async function initializePet(name) {
-    const newPet = await createPet(name);
-    dispatch({ type: "SET_PET", payload: newPet });
-    return newPet;
+  async function renamePet(newName) {
+    if (!state.pet) return;
+    const updatedPet = { ...state.pet, name: newName };
+
+    await updatePetState({
+      name: updatedPet.name,
+      stage: updatedPet.stage,
+      level: updatedPet.level,
+      xp: updatedPet.xp,
+      hunger: updatedPet.hunger,
+      sleep: updatedPet.sleep,
+      happiness: updatedPet.happiness,
+      fishTokens: updatedPet.fish_tokens,
+    });
+
+    dispatch({ type: "UPDATE_PET", payload: updatedPet });
   }
 
   /**
@@ -57,6 +75,7 @@ export function PetProvider({ children }) {
     };
 
     await updatePetState({
+      name: updatedPet.name,
       stage: updatedPet.stage,
       level: updatedPet.level,
       xp: updatedPet.xp,
@@ -102,10 +121,10 @@ export function PetProvider({ children }) {
   }
 
   /**
-   * Called externally (from CatContext-adjacent code) whenever the user
-   * collects a new real cat — awards the bigger XP chunk + a fish token.
-   * This keeps PetContext the only place that knows HOW pet stats change,
-   * while CatContext stays completely unaware that a pet module exists.
+   * Called externally (from save-cat.js) whenever the user collects a
+   * new real cat — awards the bigger XP chunk + a fish token. This keeps
+   * PetContext the only place that knows HOW pet stats change, while
+   * CatContext stays completely unaware that a pet module exists.
    */
   async function collectCatBonus() {
     if (!state.pet) return;
@@ -123,6 +142,7 @@ export function PetProvider({ children }) {
     };
 
     await updatePetState({
+      name: updatedPet.name,
       stage: updatedPet.stage,
       level: updatedPet.level,
       xp: updatedPet.xp,
@@ -151,6 +171,7 @@ export function PetProvider({ children }) {
         fish_tokens: state.pet.fish_tokens + DAILY_FISH_BONUS,
       };
       await updatePetState({
+        name: updatedPet.name,
         stage: updatedPet.stage,
         level: updatedPet.level,
         xp: updatedPet.xp,
@@ -167,7 +188,7 @@ export function PetProvider({ children }) {
     <PetContext.Provider
       value={{
         ...state,
-        initializePet,
+        renamePet,
         feedPet,
         playWithPet,
         putPetToSleep,
