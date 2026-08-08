@@ -35,3 +35,9 @@ export const STAT_RESTORE_AMOUNT = {
   PLAY_HAPPINESS: 20,
   SLEEP_RESTORE: 40,
 };
+
+// All three stats drain fully (100 -> 0) over this many hours if the
+// app is never opened. Applied as elapsed-time decay on app launch,
+// not a running timer, since the app isn't running in the background.
+export const HOURS_TO_FULL_DECAY = 24;
+export const DECAY_PER_HOUR = 100 / HOURS_TO_FULL_DECAY;

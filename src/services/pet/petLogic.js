@@ -1,4 +1,4 @@
-import { STAGE_THRESHOLDS, XP_ACTION_PERCENT, xpRequiredForLevel } from "./petConstants";
+import { DECAY_PER_HOUR, STAGE_THRESHOLDS, XP_ACTION_PERCENT, xpRequiredForLevel } from "./petConstants";
 
 /**
  * Adds XP for a "small action" (feed/tickle/play/sleep) — always 10% of
@@ -67,4 +67,28 @@ export function deriveEmotion(petState) {
  */
 export function clampStat(value) {
   return Math.max(0, Math.min(100, value));
+}
+
+/**
+ * Calculates how much each stat should have dropped since last_updated,
+ * based on real elapsed time, and returns the new clamped stat values.
+ * Pure function: takes the pet's current stats + timestamp, returns new
+ * stats — no DB or React involved, so it's easy to test independently.
+ */
+export function applyStatDecay(pet) {
+  const now = new Date();
+  const lastUpdated = new Date(pet.last_updated);
+  const hoursElapsed = (now - lastUpdated) / (1000 * 60 * 60);
+
+  if (hoursElapsed <= 0) {
+    return { hunger: pet.hunger, sleep: pet.sleep, happiness: pet.happiness };
+  }
+
+  const decayAmount = hoursElapsed * DECAY_PER_HOUR;
+
+  return {
+    hunger: clampStat(pet.hunger - decayAmount),
+    sleep: clampStat(pet.sleep - decayAmount),
+    happiness: clampStat(pet.happiness - decayAmount),
+  };
 }

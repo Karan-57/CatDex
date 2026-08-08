@@ -7,6 +7,7 @@ import {
   STAT_RESTORE_AMOUNT,
 } from "../services/pet/petConstants";
 import {
+  applyStatDecay,
   applyXpGain,
   calculateCollectCatXp,
   calculateSmallActionXp,
@@ -27,6 +28,22 @@ export function PetProvider({ children }) {
       if (!existingPet) {
         existingPet = await createPet("Your Cat");
       }
+
+      // Apply time-based decay before anything else touches the pet,
+      // so stats reflect real elapsed time since the app was last open.
+      const decayedStats = applyStatDecay(existingPet);
+      existingPet = { ...existingPet, ...decayedStats };
+      await updatePetState({
+        name: existingPet.name,
+        stage: existingPet.stage,
+        level: existingPet.level,
+        xp: existingPet.xp,
+        hunger: existingPet.hunger,
+        sleep: existingPet.sleep,
+        happiness: existingPet.happiness,
+        fishTokens: existingPet.fish_tokens,
+      });
+
       dispatch({ type: "SET_PET", payload: existingPet });
 
       const claimed = await claimDailyBonusIfEligible(existingPet);
