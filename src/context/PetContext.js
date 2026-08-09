@@ -1,6 +1,7 @@
 import { createContext, useEffect, useReducer, useState } from "react";
 import { initialPetState, petReducer } from "../reducers/petReducer";
 import {
+  ACTION_COOLDOWN_MS,
   ACTION_DURATIONS_MS,
   DAILY_FISH_BONUS,
   FEED_COST_FISH,
@@ -23,6 +24,7 @@ export const PetContext = createContext(null);
 export function PetProvider({ children }) {
   const [state, dispatch] = useReducer(petReducer, initialPetState);
   const [dailyBonusClaimed, setDailyBonusClaimed] = useState(false);
+  const [evolutionCelebration, setEvolutionCelebration] = useState(null); // { fromStage, toStage } or null
 
   useEffect(() => {
     (async () => {
@@ -46,26 +48,30 @@ export function PetProvider({ children }) {
     setDailyBonusClaimed(false);
   }
 
+  function dismissEvolutionCelebration() {
+    setEvolutionCelebration(null);
+  }
+
   // Single shared save helper - every function below builds a full
   // "updatedPet" object then calls this to persist + sync state,
   // so field names/shape stay consistent everywhere.
-async function persist(updatedPet) {
-  await updatePetState({
-    name: updatedPet.name,
-    stage: updatedPet.stage,
-    level: updatedPet.level,
-    xp: updatedPet.xp,
-    hunger: updatedPet.hunger,
-    sleep: updatedPet.sleep,
-    happiness: updatedPet.happiness,
-    fishTokens: updatedPet.fish_tokens,
-    currentAction: updatedPet.current_action,
-    actionEndTime: updatedPet.action_end_time,
-    feedCooldownEnd: updatedPet.feed_cooldown_end,
-    playCooldownEnd: updatedPet.play_cooldown_end,
-    sleepCooldownEnd: updatedPet.sleep_cooldown_end,
-  });
-}
+  async function persist(updatedPet) {
+    await updatePetState({
+      name: updatedPet.name,
+      stage: updatedPet.stage,
+      level: updatedPet.level,
+      xp: updatedPet.xp,
+      hunger: updatedPet.hunger,
+      sleep: updatedPet.sleep,
+      happiness: updatedPet.happiness,
+      fishTokens: updatedPet.fish_tokens,
+      currentAction: updatedPet.current_action,
+      actionEndTime: updatedPet.action_end_time,
+      feedCooldownEnd: updatedPet.feed_cooldown_end,
+      playCooldownEnd: updatedPet.play_cooldown_end,
+      sleepCooldownEnd: updatedPet.sleep_cooldown_end,
+    });
+  }
 
   async function renamePet(newName) {
     if (!state.pet) return;
@@ -77,84 +83,83 @@ async function persist(updatedPet) {
   /**
    * Starts a temporary action pose (feeding/playing/sleeping) that
    * reverts to the normal derived emotion once action_end_time passes.
-   * Stored in DB so it survives app close/reopen.
+   * Stored in DB so it survives app close/reopen. Also detects a
+   * kitten/teen/adult stage transition and triggers the celebration.
    */
-async function startAction(actionName, statChanges) {
-  if (!state.pet) return;
+  async function startAction(actionName, statChanges) {
+    if (!state.pet) return;
 
-  const xpGained = calculateSmallActionXp(state.pet.level);
-  const { level, xp } = applyXpGain(state.pet.level, state.pet.xp, xpGained);
-  const stage = deriveStage(level);
-  const endTime = new Date(Date.now() + ACTION_DURATIONS_MS[actionName]).toISOString();
-  const cooldownEndTime = new Date(Date.now() + ACTION_COOLDOWN_MS).toISOString();
+    const previousStage = state.pet.stage;
+    const xpGained = calculateSmallActionXp(state.pet.level);
+    const { level, xp } = applyXpGain(state.pet.level, state.pet.xp, xpGained);
+    const stage = deriveStage(level);
+    const endTime = new Date(Date.now() + ACTION_DURATIONS_MS[actionName]).toISOString();
+    const cooldownEndTime = new Date(Date.now() + ACTION_COOLDOWN_MS).toISOString();
 
-  const cooldownFieldMap = {
-    feeding: "feed_cooldown_end",
-    playing: "play_cooldown_end",
-    sleeping: "sleep_cooldown_end",
-  };
+    const cooldownFieldMap = {
+      feeding: "feed_cooldown_end",
+      playing: "play_cooldown_end",
+      sleeping: "sleep_cooldown_end",
+    };
 
-  const updatedPet = {
-    ...state.pet,
-    ...statChanges,
-    level,
-    xp,
-    stage,
-    current_action: actionName,
-    action_end_time: endTime,
-    [cooldownFieldMap[actionName]]: cooldownEndTime,
-  };
+    const updatedPet = {
+      ...state.pet,
+      ...statChanges,
+      level,
+      xp,
+      stage,
+      current_action: actionName,
+      action_end_time: endTime,
+      [cooldownFieldMap[actionName]]: cooldownEndTime,
+    };
 
-  await persist(updatedPet);
-  dispatch({ type: "UPDATE_PET", payload: updatedPet });
-  return updatedPet;
-}
+    await persist(updatedPet);
+    dispatch({ type: "UPDATE_PET", payload: updatedPet });
 
-async function feedPet() {
-  if (!state.pet || state.pet.fish_tokens < FEED_COST_FISH) return false;
-  if (isActionOnCooldown(state.pet, "feeding")) return false;
-  await startAction("feeding", {
-    hunger: clampStat(state.pet.hunger + STAT_RESTORE_AMOUNT.FEED_HUNGER),
-    fish_tokens: state.pet.fish_tokens - FEED_COST_FISH,
-  });
-  return true;
-}
+    if (stage !== previousStage) {
+      setEvolutionCelebration({ fromStage: previousStage, toStage: stage });
+    }
 
-async function playWithPet() {
-  if (!state.pet) return false;
-  if (isActionOnCooldown(state.pet, "playing")) return false;
-  await startAction("playing", {
-    happiness: clampStat(state.pet.happiness + STAT_RESTORE_AMOUNT.PLAY_HAPPINESS),
-  });
-  return true;
-}
+    return updatedPet;
+  }
 
-async function putPetToSleep() {
-  if (!state.pet) return false;
-  if (isActionOnCooldown(state.pet, "sleeping")) return false;
-  await startAction("sleeping", {
-    sleep: clampStat(state.pet.sleep + STAT_RESTORE_AMOUNT.SLEEP_RESTORE),
-  });
-  return true;
-}
+  async function feedPet() {
+    if (!state.pet || state.pet.fish_tokens < FEED_COST_FISH) return false;
+    if (isActionOnCooldown(state.pet, "feeding")) return false;
+    await startAction("feeding", {
+      hunger: clampStat(state.pet.hunger + STAT_RESTORE_AMOUNT.FEED_HUNGER),
+      fish_tokens: state.pet.fish_tokens - FEED_COST_FISH,
+    });
+    return true;
+  }
 
   async function playWithPet() {
-    if (!state.pet) return;
+    if (!state.pet) return false;
+    if (isActionOnCooldown(state.pet, "playing")) return false;
     await startAction("playing", {
       happiness: clampStat(state.pet.happiness + STAT_RESTORE_AMOUNT.PLAY_HAPPINESS),
     });
+    return true;
   }
 
   async function putPetToSleep() {
-    if (!state.pet) return;
+    if (!state.pet) return false;
+    if (isActionOnCooldown(state.pet, "sleeping")) return false;
     await startAction("sleeping", {
       sleep: clampStat(state.pet.sleep + STAT_RESTORE_AMOUNT.SLEEP_RESTORE),
     });
+    return true;
   }
 
+  /**
+   * Called externally (from save-cat.js) whenever the user collects a
+   * new real cat — awards the bigger XP chunk + a fish token, and
+   * detects stage transitions the same way startAction does.
+   */
   async function collectCatBonus() {
     if (!state.pet) return;
 
+    const previousStage = state.pet.stage;
     const xpGained = calculateCollectCatXp(state.pet.level);
     const { level, xp } = applyXpGain(state.pet.level, state.pet.xp, xpGained);
     const stage = deriveStage(level);
@@ -169,6 +174,10 @@ async function putPetToSleep() {
 
     await persist(updatedPet);
     dispatch({ type: "UPDATE_PET", payload: updatedPet });
+
+    if (stage !== previousStage) {
+      setEvolutionCelebration({ fromStage: previousStage, toStage: stage });
+    }
   }
 
   async function claimDailyBonusIfEligible(petOverride) {
@@ -202,6 +211,8 @@ async function putPetToSleep() {
         claimDailyBonusIfEligible,
         dailyBonusClaimed,
         dismissDailyBonusNotice,
+        evolutionCelebration,
+        dismissEvolutionCelebration,
       }}
     >
       {children}

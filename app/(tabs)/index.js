@@ -2,6 +2,7 @@ import { useRouter } from "expo-router";
 import React from "react";
 import { ActivityIndicator, Dimensions, ScrollView, StyleSheet, Text, TouchableOpacity, View } from "react-native";
 import AppModal from "../../src/components/AppModal";
+import EvolutionCelebration from "../../src/components/home/EvolutionCelebration";
 import PersonalCatSlot from "../../src/components/home/PersonalCatSlot";
 import { COLORS, RADIUS, SPACING } from "../../src/constants/config";
 import { useCats } from "../../src/hooks/useCats";
@@ -13,7 +14,7 @@ const SCREEN_HEIGHT = Dimensions.get("window").height;
 export default function HomeScreen() {
   const router = useRouter();
   const { cats, loading } = useCats();
-  const { pet, dailyBonusClaimed, dismissDailyBonusNotice } = usePet();
+  const { pet, dailyBonusClaimed, dismissDailyBonusNotice, evolutionCelebration, dismissEvolutionCelebration } = usePet();
 
   const recentCats = cats.slice(0, 5);
 
@@ -63,6 +64,7 @@ export default function HomeScreen() {
         onClose={dismissDailyBonusNotice}
         actions={[{ label: "Nice!", onPress: dismissDailyBonusNotice }]}
       />
+      <EvolutionCelebration celebration={evolutionCelebration} onDismiss={dismissEvolutionCelebration} />
     </ScrollView>
   );
 }
