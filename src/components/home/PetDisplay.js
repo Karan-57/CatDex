@@ -15,7 +15,7 @@ const PET_IMAGES = {
   },
 };
 
-export default function PetDisplay({ pet }) {
+export default function PetDisplay({ pet, onRenamePress }) {
   const { feedPet, playWithPet, putPetToSleep } = usePet();
 
   const emotion = deriveEmotion(pet);
@@ -33,25 +33,28 @@ export default function PetDisplay({ pet }) {
   }
 
   return (
-    <View style={styles.card}>
-      <Image source={imageSource} style={styles.petImage} resizeMode="contain" />
-
-      <Text style={styles.name}>{pet.name}</Text>
-      <Text style={styles.levelText}>
-        Lv. {pet.level} · {pet.stage.charAt(0).toUpperCase() + pet.stage.slice(1)}
-      </Text>
-
+    <View style={styles.wrapper}>
+      {/* Top info row: name/level/stage + XP bar, all directly in the
+          parent placeholder - no separate nested card */}
+      <View style={styles.infoRow}>
+        <Text style={styles.name}>{pet.name}</Text>
+        <Text style={styles.level}>Lv. {pet.level}</Text>
+        <Text style={styles.stage}>{pet.stage.charAt(0).toUpperCase() + pet.stage.slice(1)}</Text>
+        <TouchableOpacity onPress={onRenamePress} style={styles.renameIcon}>
+          <Text style={styles.renameIconText}>✏️</Text>
+        </TouchableOpacity>
+      </View>
       <View style={styles.xpBarTrack}>
         <View style={[styles.xpBarFill, { width: `${xpProgress * 100}%` }]} />
       </View>
+
+      <Image source={imageSource} style={styles.petImage} resizeMode="contain" />
 
       <View style={styles.statsRow}>
         <StatBar label="Hunger" value={pet.hunger} color={COLORS.warning} />
         <StatBar label="Sleep" value={pet.sleep} color={COLORS.secondary} />
         <StatBar label="Happy" value={pet.happiness} color={COLORS.success} />
       </View>
-
-      <Text style={styles.fishText}>🐟 {pet.fish_tokens}</Text>
 
       <View style={styles.actionRow}>
         <ActionButton label="Feed" onPress={handleFeed} />
@@ -82,29 +85,24 @@ function ActionButton({ label, onPress }) {
 }
 
 const styles = StyleSheet.create({
-  card: {
-    backgroundColor: COLORS.card,
-    borderRadius: RADIUS.lg,
-    padding: SPACING.md,
-    alignItems: "center",
-    borderWidth: 1,
-    borderColor: COLORS.border,
-    height: "100%",
-    justifyContent: "center",
-  },
-  petImage: { width: "60%", height: "38%" },
-  name: { fontSize: 20, fontWeight: "bold", color: COLORS.text, marginTop: SPACING.sm },
-  levelText: { fontSize: 13, color: COLORS.textMuted, marginBottom: SPACING.sm },
+  wrapper: { width: "100%", height: "100%", justifyContent: "space-between" },
+  infoRow: { flexDirection: "row", alignItems: "center", gap: SPACING.sm },
+  name: { fontSize: 18, fontWeight: "bold", color: COLORS.text },
+  level: { fontSize: 14, color: COLORS.primary, fontWeight: "600" },
+  stage: { fontSize: 14, color: COLORS.textMuted, flex: 1 },
+  renameIcon: { padding: 4 },
+  renameIconText: { fontSize: 16 },
   xpBarTrack: {
-    width: "80%",
+    width: "100%",
     height: 6,
     backgroundColor: COLORS.border,
     borderRadius: 3,
     overflow: "hidden",
-    marginBottom: SPACING.md,
+    marginTop: SPACING.xs,
   },
   xpBarFill: { height: "100%", backgroundColor: COLORS.primary },
-  statsRow: { flexDirection: "row", width: "90%", justifyContent: "space-between", gap: SPACING.sm },
+  petImage: { width: "100%", height: "55%" },
+  statsRow: { flexDirection: "row", width: "100%", justifyContent: "space-between", gap: SPACING.sm },
   statItem: { flex: 1, alignItems: "center" },
   statLabel: { fontSize: 11, color: COLORS.textMuted, marginBottom: 2 },
   statTrack: {
@@ -115,8 +113,7 @@ const styles = StyleSheet.create({
     overflow: "hidden",
   },
   statFill: { height: "100%" },
-  fishText: { marginTop: SPACING.sm, fontSize: 13, color: COLORS.text },
-  actionRow: { flexDirection: "row", gap: SPACING.sm, marginTop: SPACING.md },
+  actionRow: { flexDirection: "row", gap: SPACING.sm, justifyContent: "center" },
   actionButton: {
     backgroundColor: COLORS.primary,
     paddingVertical: SPACING.xs,

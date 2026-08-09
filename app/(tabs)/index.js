@@ -13,15 +13,16 @@ const SCREEN_HEIGHT = Dimensions.get("window").height;
 export default function HomeScreen() {
   const router = useRouter();
   const { cats, loading } = useCats();
-  const { dailyBonusClaimed, dismissDailyBonusNotice } = usePet();
+  const { pet, dailyBonusClaimed, dismissDailyBonusNotice } = usePet();
 
   const recentCats = cats.slice(0, 5);
 
   return (
     <ScrollView style={styles.container} contentContainerStyle={styles.content}>
-      {/* Placeholder status bar - content TBD */}
+      {/* Status bar - now also shows fish token count top-right */}
       <View style={styles.statusBar}>
-        <Text style={styles.statusBarText}>Status Bar Placeholder</Text>
+        <Text style={styles.statusBarText}>CatDex</Text>
+        {pet && <Text style={styles.fishText}>🐟 {pet.fish_tokens}</Text>}
       </View>
 
       <View style={styles.personalCatCard}>
@@ -73,35 +74,37 @@ const styles = StyleSheet.create({
     backgroundColor: COLORS.card,
     borderRadius: RADIUS.md,
     padding: SPACING.sm,
+    flexDirection: "row",
     alignItems: "center",
+    justifyContent: "space-between",
     marginBottom: SPACING.md,
     borderWidth: 1,
     borderColor: COLORS.border,
   },
-  statusBarText: { fontSize: 13, color: COLORS.textMuted },
+  statusBarText: { fontSize: 13, fontWeight: "600", color: COLORS.text },
+  fishText: { fontSize: 13, color: COLORS.text, fontWeight: "600" },
   personalCatCard: {
     backgroundColor: COLORS.card,
     borderRadius: RADIUS.lg,
-    padding: SPACING.xl,
+    padding: SPACING.md,
     alignItems: "center",
     justifyContent: "center",
     marginBottom: SPACING.md,
-    height: SCREEN_HEIGHT * 0.5,
+    height: SCREEN_HEIGHT * 1.0,
     borderWidth: 1,
     borderColor: COLORS.border,
   },
-  personalCatText: { fontSize: 16, color: COLORS.textMuted },
   statsCard: {
     backgroundColor: COLORS.card,
     borderRadius: RADIUS.md,
-    padding: SPACING.md,
+    padding: SPACING.sm,
     alignItems: "center",
     marginBottom: SPACING.md,
-    minHeight: 76,
+    minHeight: 50,
     justifyContent: "center",
   },
-  statsNumber: { fontSize: 32, fontWeight: "bold", color: COLORS.primary },
-  statsLabel: { fontSize: 14, color: COLORS.textMuted, marginTop: SPACING.xs },
+  statsNumber: { fontSize: 20, fontWeight: "bold", color: COLORS.primary },
+  statsLabel: { fontSize: 12, color: COLORS.textMuted, marginTop: 2 },
   recentSection: { marginTop: SPACING.md },
   sectionTitle: { fontSize: 16, fontWeight: "bold", marginBottom: SPACING.sm, color: COLORS.text },
   emptyText: { fontSize: 14, color: COLORS.textMuted, fontStyle: "italic" },
