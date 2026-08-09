@@ -41,3 +41,9 @@ export const STAT_RESTORE_AMOUNT = {
 // not a running timer, since the app isn't running in the background.
 export const HOURS_TO_FULL_DECAY = 24;
 export const DECAY_PER_HOUR = 100 / HOURS_TO_FULL_DECAY;
+
+export const ACTION_DURATIONS_MS = {
+  feeding: 8 * 1000,
+  playing: 15 * 60 * 1000,
+  sleeping: 60 * 60 * 1000,
+};

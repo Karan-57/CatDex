@@ -92,3 +92,16 @@ export function applyStatDecay(pet) {
     happiness: clampStat(pet.happiness - decayAmount),
   };
 }
+
+/**
+ * Given the pet's stored current_action + action_end_time, determines
+ * whether that action is still active (returns the action name) or has
+ * expired (returns null, meaning show the normal derived emotion).
+ * Pure function - just compares timestamps.
+ */
+export function getActiveAction(pet) {
+  if (!pet.current_action || !pet.action_end_time) return null;
+  const endTime = new Date(pet.action_end_time);
+  const now = new Date();
+  return now < endTime ? pet.current_action : null;
+}
