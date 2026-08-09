@@ -25,7 +25,9 @@ export async function updatePetState(updates) {
   await db.runAsync(
     `UPDATE pet_state
      SET name = ?, stage = ?, level = ?, xp = ?, hunger = ?, sleep = ?, happiness = ?, fish_tokens = ?,
-         current_action = ?, action_end_time = ?, last_updated = ?
+         current_action = ?, action_end_time = ?,
+         feed_cooldown_end = ?, play_cooldown_end = ?, sleep_cooldown_end = ?,
+         last_updated = ?
      WHERE id = 1;`,
     [
       updates.name,
@@ -38,6 +40,9 @@ export async function updatePetState(updates) {
       updates.fishTokens,
       updates.currentAction ?? null,
       updates.actionEndTime ?? null,
+      updates.feedCooldownEnd ?? null,
+      updates.playCooldownEnd ?? null,
+      updates.sleepCooldownEnd ?? null,
       now,
     ]
   );

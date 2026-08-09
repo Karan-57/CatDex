@@ -105,3 +105,19 @@ export function getActiveAction(pet) {
   const now = new Date();
   return now < endTime ? pet.current_action : null;
 }
+
+/**
+ * Returns true if the given action is still on cooldown (comparing the
+ * relevant *_cooldown_end field against now). Used to disable individual
+ * action buttons independently of whether any action is currently active.
+ */
+export function isActionOnCooldown(pet, actionName) {
+  const fieldMap = {
+    feeding: pet.feed_cooldown_end,
+    playing: pet.play_cooldown_end,
+    sleeping: pet.sleep_cooldown_end,
+  };
+  const cooldownEnd = fieldMap[actionName];
+  if (!cooldownEnd) return false;
+  return new Date() < new Date(cooldownEnd);
+}

@@ -14,6 +14,7 @@ import {
   calculateSmallActionXp,
   clampStat,
   deriveStage,
+  isActionOnCooldown,
 } from "../services/pet/petLogic";
 import { createPet, getPet, updatePetState } from "../services/pet/petQueries";
 
@@ -48,20 +49,23 @@ export function PetProvider({ children }) {
   // Single shared save helper - every function below builds a full
   // "updatedPet" object then calls this to persist + sync state,
   // so field names/shape stay consistent everywhere.
-  async function persist(updatedPet) {
-    await updatePetState({
-      name: updatedPet.name,
-      stage: updatedPet.stage,
-      level: updatedPet.level,
-      xp: updatedPet.xp,
-      hunger: updatedPet.hunger,
-      sleep: updatedPet.sleep,
-      happiness: updatedPet.happiness,
-      fishTokens: updatedPet.fish_tokens,
-      currentAction: updatedPet.current_action,
-      actionEndTime: updatedPet.action_end_time,
-    });
-  }
+async function persist(updatedPet) {
+  await updatePetState({
+    name: updatedPet.name,
+    stage: updatedPet.stage,
+    level: updatedPet.level,
+    xp: updatedPet.xp,
+    hunger: updatedPet.hunger,
+    sleep: updatedPet.sleep,
+    happiness: updatedPet.happiness,
+    fishTokens: updatedPet.fish_tokens,
+    currentAction: updatedPet.current_action,
+    actionEndTime: updatedPet.action_end_time,
+    feedCooldownEnd: updatedPet.feed_cooldown_end,
+    playCooldownEnd: updatedPet.play_cooldown_end,
+    sleepCooldownEnd: updatedPet.sleep_cooldown_end,
+  });
+}
 
   async function renamePet(newName) {
     if (!state.pet) return;
@@ -75,37 +79,64 @@ export function PetProvider({ children }) {
    * reverts to the normal derived emotion once action_end_time passes.
    * Stored in DB so it survives app close/reopen.
    */
-  async function startAction(actionName, statChanges) {
-    if (!state.pet) return;
+async function startAction(actionName, statChanges) {
+  if (!state.pet) return;
 
-    const xpGained = calculateSmallActionXp(state.pet.level);
-    const { level, xp } = applyXpGain(state.pet.level, state.pet.xp, xpGained);
-    const stage = deriveStage(level);
-    const endTime = new Date(Date.now() + ACTION_DURATIONS_MS[actionName]).toISOString();
+  const xpGained = calculateSmallActionXp(state.pet.level);
+  const { level, xp } = applyXpGain(state.pet.level, state.pet.xp, xpGained);
+  const stage = deriveStage(level);
+  const endTime = new Date(Date.now() + ACTION_DURATIONS_MS[actionName]).toISOString();
+  const cooldownEndTime = new Date(Date.now() + ACTION_COOLDOWN_MS).toISOString();
 
-    const updatedPet = {
-      ...state.pet,
-      ...statChanges,
-      level,
-      xp,
-      stage,
-      current_action: actionName,
-      action_end_time: endTime,
-    };
+  const cooldownFieldMap = {
+    feeding: "feed_cooldown_end",
+    playing: "play_cooldown_end",
+    sleeping: "sleep_cooldown_end",
+  };
 
-    await persist(updatedPet);
-    dispatch({ type: "UPDATE_PET", payload: updatedPet });
-    return updatedPet;
-  }
+  const updatedPet = {
+    ...state.pet,
+    ...statChanges,
+    level,
+    xp,
+    stage,
+    current_action: actionName,
+    action_end_time: endTime,
+    [cooldownFieldMap[actionName]]: cooldownEndTime,
+  };
 
-  async function feedPet() {
-    if (!state.pet || state.pet.fish_tokens < FEED_COST_FISH) return false;
-    await startAction("feeding", {
-      hunger: clampStat(state.pet.hunger + STAT_RESTORE_AMOUNT.FEED_HUNGER),
-      fish_tokens: state.pet.fish_tokens - FEED_COST_FISH,
-    });
-    return true;
-  }
+  await persist(updatedPet);
+  dispatch({ type: "UPDATE_PET", payload: updatedPet });
+  return updatedPet;
+}
+
+async function feedPet() {
+  if (!state.pet || state.pet.fish_tokens < FEED_COST_FISH) return false;
+  if (isActionOnCooldown(state.pet, "feeding")) return false;
+  await startAction("feeding", {
+    hunger: clampStat(state.pet.hunger + STAT_RESTORE_AMOUNT.FEED_HUNGER),
+    fish_tokens: state.pet.fish_tokens - FEED_COST_FISH,
+  });
+  return true;
+}
+
+async function playWithPet() {
+  if (!state.pet) return false;
+  if (isActionOnCooldown(state.pet, "playing")) return false;
+  await startAction("playing", {
+    happiness: clampStat(state.pet.happiness + STAT_RESTORE_AMOUNT.PLAY_HAPPINESS),
+  });
+  return true;
+}
+
+async function putPetToSleep() {
+  if (!state.pet) return false;
+  if (isActionOnCooldown(state.pet, "sleeping")) return false;
+  await startAction("sleeping", {
+    sleep: clampStat(state.pet.sleep + STAT_RESTORE_AMOUNT.SLEEP_RESTORE),
+  });
+  return true;
+}
 
   async function playWithPet() {
     if (!state.pet) return;

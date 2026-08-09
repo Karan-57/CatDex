@@ -38,18 +38,27 @@ export async function initDatabase() {
       fish_tokens INTEGER NOT NULL DEFAULT 0,
       current_action TEXT,
       action_end_time TEXT,
+      feed_cooldown_end TEXT,
+      play_cooldown_end TEXT,
+      sleep_cooldown_end TEXT,
       last_updated TEXT NOT NULL,
       created_at TEXT NOT NULL
     );
   `);
 
-  // Migration: add action-tracking columns if they don't exist yet
-  // (needed since existing installs already have the old schema
-  // without these two columns).
+  // Migration: add any columns missing on existing installs.
   const tableInfo = await db.getAllAsync(`PRAGMA table_info(pet_state);`);
-  const hasActionColumn = tableInfo.some((col) => col.name === "current_action");
-  if (!hasActionColumn) {
-    await db.execAsync(`ALTER TABLE pet_state ADD COLUMN current_action TEXT;`);
-    await db.execAsync(`ALTER TABLE pet_state ADD COLUMN action_end_time TEXT;`);
+  const existingColumns = tableInfo.map((col) => col.name);
+  const requiredColumns = {
+    current_action: "TEXT",
+    action_end_time: "TEXT",
+    feed_cooldown_end: "TEXT",
+    play_cooldown_end: "TEXT",
+    sleep_cooldown_end: "TEXT",
+  };
+  for (const [columnName, columnType] of Object.entries(requiredColumns)) {
+    if (!existingColumns.includes(columnName)) {
+      await db.execAsync(`ALTER TABLE pet_state ADD COLUMN ${columnName} ${columnType};`);
+    }
   }
 }

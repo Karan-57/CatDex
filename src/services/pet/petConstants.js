@@ -47,3 +47,5 @@ export const ACTION_DURATIONS_MS = {
   playing: 15 * 60 * 1000,
   sleeping: 60 * 60 * 1000,
 };
+
+export const ACTION_COOLDOWN_MS = 12 * 60 * 60 * 1000; // 12 hours

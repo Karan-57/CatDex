@@ -1,9 +1,9 @@
-import React from "react";
+import React, { useEffect, useState } from "react";
 import { Alert, Image, StyleSheet, Text, TouchableOpacity, View } from "react-native";
 import { COLORS, RADIUS, SPACING } from "../../constants/config";
 import { usePet } from "../../hooks/usePet";
-import { FEED_COST_FISH, xpRequiredForLevel } from "../../services/pet/petConstants";
-import { deriveEmotion } from "../../services/pet/petLogic";
+import { xpRequiredForLevel } from "../../services/pet/petConstants";
+import { deriveEmotion, getActiveAction, isActionOnCooldown } from "../../services/pet/petLogic";
 
 const PET_IMAGES = {
   kitten: {
@@ -15,10 +15,29 @@ const PET_IMAGES = {
   },
 };
 
+// Maps an active action name to which existing image represents it,
+// per your mapping: feeding -> hungry.png, playing -> happy.png,
+// sleeping -> sleepy.png. Swap these for dedicated art anytime later.
+const ACTION_IMAGE_KEY = {
+  feeding: "hungry",
+  playing: "happy",
+  sleeping: "sleepy",
+};
+
 export default function PetDisplay({ pet, onRenamePress }) {
   const { feedPet, playWithPet, putPetToSleep } = usePet();
 
-  const emotion = deriveEmotion(pet);
+  // Re-check every second so the pose correctly reverts the moment an
+  // action expires, and cooldown-based button states update live,
+  // without needing the user to reopen the screen.
+  const [, forceTick] = useState(0);
+  useEffect(() => {
+    const interval = setInterval(() => forceTick((t) => t + 1), 1000);
+    return () => clearInterval(interval);
+  }, []);
+
+  const activeAction = getActiveAction(pet);
+  const emotion = activeAction ? ACTION_IMAGE_KEY[activeAction] : deriveEmotion(pet);
   const stageImages = PET_IMAGES[pet.stage] || PET_IMAGES.kitten;
   const imageSource = stageImages[emotion] || stageImages.content;
 
@@ -28,14 +47,34 @@ export default function PetDisplay({ pet, onRenamePress }) {
   async function handleFeed() {
     const success = await feedPet();
     if (!success) {
-      Alert.alert("Not Enough Fish", `You need ${FEED_COST_FISH} fish to feed your cat. Collect more cats to earn fish!`);
+      Alert.alert(
+        "Can't Feed Right Now",
+        `Either you're out of fish, or your cat needs to rest before eating again.`
+      );
     }
   }
 
+  async function handlePlay() {
+    const success = await playWithPet();
+    if (!success) {
+      Alert.alert("Not Ready to Play", "Your cat needs a break before playing again.");
+    }
+  }
+
+  async function handleSleep() {
+    const success = await putPetToSleep();
+    if (!success) {
+      Alert.alert("Not Sleepy Yet", "Your cat isn't ready to sleep again so soon.");
+    }
+  }
+
+  const isBusy = !!activeAction;
+  const feedDisabled = isBusy || isActionOnCooldown(pet, "feeding");
+  const playDisabled = isBusy || isActionOnCooldown(pet, "playing");
+  const sleepDisabled = isBusy || isActionOnCooldown(pet, "sleeping");
+
   return (
     <View style={styles.wrapper}>
-      {/* Top info row: name/level/stage + XP bar, all directly in the
-          parent placeholder - no separate nested card */}
       <View style={styles.infoRow}>
         <Text style={styles.name}>{pet.name}</Text>
         <Text style={styles.level}>Lv. {pet.level}</Text>
@@ -57,9 +96,9 @@ export default function PetDisplay({ pet, onRenamePress }) {
       </View>
 
       <View style={styles.actionRow}>
-        <ActionButton label="Feed" onPress={handleFeed} />
-        <ActionButton label="Play" onPress={playWithPet} />
-        <ActionButton label="Sleep" onPress={putPetToSleep} />
+        <ActionButton label="Feed" onPress={handleFeed} disabled={feedDisabled} />
+        <ActionButton label="Play" onPress={handlePlay} disabled={playDisabled} />
+        <ActionButton label="Sleep" onPress={handleSleep} disabled={sleepDisabled} />
       </View>
     </View>
   );
@@ -76,9 +115,13 @@ function StatBar({ label, value, color }) {
   );
 }
 
-function ActionButton({ label, onPress }) {
+function ActionButton({ label, onPress, disabled }) {
   return (
-    <TouchableOpacity style={styles.actionButton} onPress={onPress}>
+    <TouchableOpacity
+      style={[styles.actionButton, disabled && styles.actionButtonDisabled]}
+      onPress={onPress}
+      disabled={disabled}
+    >
       <Text style={styles.actionButtonText}>{label}</Text>
     </TouchableOpacity>
   );
@@ -120,5 +163,6 @@ const styles = StyleSheet.create({
     paddingHorizontal: SPACING.md,
     borderRadius: RADIUS.sm,
   },
+  actionButtonDisabled: { opacity: 0.4 },
   actionButtonText: { color: "#fff", fontWeight: "600", fontSize: 13 },
 });
