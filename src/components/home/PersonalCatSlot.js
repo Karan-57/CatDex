@@ -2,7 +2,7 @@ import React, { useState } from "react";
 import { StyleSheet, Text, TextInput, TouchableOpacity, View } from "react-native";
 import { COLORS, RADIUS, SPACING } from "../../constants/config";
 import { usePet } from "../../hooks/usePet";
-import PetDisplay from "./PetDisplay";
+import { PetControls, PetVisual } from "./PetDisplay";
 
 export default function PersonalCatSlot() {
   const { pet, loading, renamePet } = usePet();
@@ -44,8 +44,12 @@ export default function PersonalCatSlot() {
     );
   }
 
-  return <PetDisplay pet={pet} onRenamePress={() => setShowRename(true)} />;
+  return <PetVisual pet={pet} onRenamePress={() => setShowRename(true)} />;
 }
+
+// Exposes PetControls so the Home screen can render it in its own
+// separate container below the visual card.
+export { PetControls };
 
 const styles = StyleSheet.create({
   card: {

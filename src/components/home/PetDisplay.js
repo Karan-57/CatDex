@@ -20,9 +20,15 @@ const ACTION_IMAGE_KEY = {
   sleeping: "sleepy",
 };
 
-export default function PetDisplay({ pet, onRenamePress }) {
-  const { feedPet, playWithPet, putPetToSleep } = usePet();
+// Uncomment once you've added the background image file:
+// const ROOM_BACKGROUND = require("../../../assets/pet/room-background.jpg");
 
+/**
+ * Just the pet's visual (background room + mood PNG + rename icon).
+ * Stats and action buttons now live in a separate PetControls component,
+ * rendered in its own container below this one.
+ */
+export function PetVisual({ pet, onRenamePress }) {
   const [, forceTick] = useState(0);
   useEffect(() => {
     const interval = setInterval(() => forceTick((t) => t + 1), 1000);
@@ -34,12 +40,38 @@ export default function PetDisplay({ pet, onRenamePress }) {
   const stageImages = PET_IMAGES[pet.stage] || PET_IMAGES.kitten;
   const imageSource = stageImages[emotion] || stageImages.content;
 
+  return (
+    <View style={styles.visualWrapper}>
+      <TouchableOpacity onPress={onRenamePress} style={styles.renameIcon}>
+        <Text style={styles.renameIconText}>✏️</Text>
+      </TouchableOpacity>
+      <Image source={imageSource} style={styles.petImage} resizeMode="contain" />
+    </View>
+  );
+}
+
+/**
+ * Stats bars + Feed/Play/Sleep buttons, rendered in a separate card
+ * below the pet visual. Still needs `pet` since it reads hunger/sleep/
+ * happiness and cooldown state directly.
+ */
+export function PetControls({ pet }) {
+  const { feedPet, playWithPet, putPetToSleep } = usePet();
+
+  const [, forceTick] = useState(0);
+  useEffect(() => {
+    const interval = setInterval(() => forceTick((t) => t + 1), 1000);
+    return () => clearInterval(interval);
+  }, []);
+
+  const activeAction = getActiveAction(pet);
+
   async function handleFeed() {
     const success = await feedPet();
     if (!success) {
       Alert.alert(
         "Can't Feed Right Now",
-        `Either you're out of fish, or your cat needs to rest before eating again.`
+        "Either you're out of fish, or your cat needs to rest before eating again."
       );
     }
   }
@@ -64,13 +96,7 @@ export default function PetDisplay({ pet, onRenamePress }) {
   const sleepDisabled = isBusy || isActionOnCooldown(pet, "sleeping");
 
   return (
-    <View style={styles.wrapper}>
-      <TouchableOpacity onPress={onRenamePress} style={styles.renameIcon}>
-        <Text style={styles.renameIconText}>✏️</Text>
-      </TouchableOpacity>
-
-      <Image source={imageSource} style={styles.petImage} resizeMode="contain" />
-
+    <View style={styles.controlsWrapper}>
       <View style={styles.statsRow}>
         <StatBar label="Hunger" value={pet.hunger} color={COLORS.warning} />
         <StatBar label="Sleep" value={pet.sleep} color={COLORS.secondary} />
@@ -110,11 +136,30 @@ function ActionButton({ label, onPress, disabled }) {
 }
 
 const styles = StyleSheet.create({
-  wrapper: { width: "100%", height: "100%", justifyContent: "space-between" },
-  renameIcon: { alignSelf: "flex-end", padding: 4 },
+  visualWrapper: {
+    width: "100%",
+    height: "100%",
+    borderRadius: RADIUS.lg,
+    overflow: "hidden",
+    backgroundColor: COLORS.background,
+    justifyContent: "center",
+    alignItems: "center",
+  },
+  renameIcon: {
+    position: "absolute",
+    top: SPACING.xs,
+    right: SPACING.xs,
+    padding: 4,
+    backgroundColor: COLORS.card,
+    borderRadius: RADIUS.sm,
+    zIndex: 1,
+  },
   renameIconText: { fontSize: 16 },
-  petImage: { width: "100%", height: "60%" },
-  statsRow: { flexDirection: "row", width: "100%", justifyContent: "space-between", gap: SPACING.sm },
+  // Pet PNG shrunk to roughly half its previous relative size, reducing
+  // empty space now that it's layered over a full-scene background.
+  petImage: { width: "35%", height: "30%" },
+  controlsWrapper: { width: "100%" },
+  statsRow: { flexDirection: "row", width: "100%", justifyContent: "space-between", gap: SPACING.sm, marginBottom: SPACING.sm },
   statItem: { flex: 1, alignItems: "center" },
   statLabel: { fontSize: 11, color: COLORS.textMuted, marginBottom: 2 },
   statTrack: {

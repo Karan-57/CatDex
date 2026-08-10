@@ -1,18 +1,14 @@
-import { useRouter } from "expo-router";
 import React from "react";
-import { ActivityIndicator, Dimensions, StyleSheet, Text, View } from "react-native";
+import { ActivityIndicator, StyleSheet, Text, View } from "react-native";
 import AppModal from "../../src/components/AppModal";
 import EvolutionCelebration from "../../src/components/home/EvolutionCelebration";
-import PersonalCatSlot from "../../src/components/home/PersonalCatSlot";
+import PersonalCatSlot, { PetControls } from "../../src/components/home/PersonalCatSlot";
 import { COLORS, RADIUS, SPACING } from "../../src/constants/config";
 import { useCats } from "../../src/hooks/useCats";
 import { usePet } from "../../src/hooks/usePet";
 import { DAILY_FISH_BONUS, xpRequiredForLevel } from "../../src/services/pet/petConstants";
 
-const SCREEN_HEIGHT = Dimensions.get("window").height;
-
 export default function HomeScreen() {
-  const router = useRouter();
   const { cats, loading } = useCats();
   const {
     pet,
@@ -52,6 +48,12 @@ export default function HomeScreen() {
         <View style={styles.personalCatCard}>
           <PersonalCatSlot />
         </View>
+
+        {pet && (
+          <View style={styles.petControlsCard}>
+            <PetControls pet={pet} />
+          </View>
+        )}
 
         <View style={styles.statsCard}>
           {loading ? (
@@ -109,6 +111,14 @@ const styles = StyleSheet.create({
     justifyContent: "center",
     marginBottom: SPACING.md,
     flex: 1,
+    borderWidth: 1,
+    borderColor: COLORS.border,
+  },
+  petControlsCard: {
+    backgroundColor: COLORS.card,
+    borderRadius: RADIUS.md,
+    padding: SPACING.md,
+    marginBottom: SPACING.md,
     borderWidth: 1,
     borderColor: COLORS.border,
   },
