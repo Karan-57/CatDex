@@ -2,7 +2,6 @@ import React, { useEffect, useState } from "react";
 import { Alert, Image, StyleSheet, Text, TouchableOpacity, View } from "react-native";
 import { COLORS, RADIUS, SPACING } from "../../constants/config";
 import { usePet } from "../../hooks/usePet";
-import { xpRequiredForLevel } from "../../services/pet/petConstants";
 import { deriveEmotion, getActiveAction, isActionOnCooldown } from "../../services/pet/petLogic";
 
 const PET_IMAGES = {
@@ -15,9 +14,6 @@ const PET_IMAGES = {
   },
 };
 
-// Maps an active action name to which existing image represents it,
-// per your mapping: feeding -> hungry.png, playing -> happy.png,
-// sleeping -> sleepy.png. Swap these for dedicated art anytime later.
 const ACTION_IMAGE_KEY = {
   feeding: "hungry",
   playing: "happy",
@@ -27,9 +23,6 @@ const ACTION_IMAGE_KEY = {
 export default function PetDisplay({ pet, onRenamePress }) {
   const { feedPet, playWithPet, putPetToSleep } = usePet();
 
-  // Re-check every second so the pose correctly reverts the moment an
-  // action expires, and cooldown-based button states update live,
-  // without needing the user to reopen the screen.
   const [, forceTick] = useState(0);
   useEffect(() => {
     const interval = setInterval(() => forceTick((t) => t + 1), 1000);
@@ -40,9 +33,6 @@ export default function PetDisplay({ pet, onRenamePress }) {
   const emotion = activeAction ? ACTION_IMAGE_KEY[activeAction] : deriveEmotion(pet);
   const stageImages = PET_IMAGES[pet.stage] || PET_IMAGES.kitten;
   const imageSource = stageImages[emotion] || stageImages.content;
-
-  const xpNeeded = xpRequiredForLevel(pet.level);
-  const xpProgress = Math.min(pet.xp / xpNeeded, 1);
 
   async function handleFeed() {
     const success = await feedPet();
@@ -75,17 +65,9 @@ export default function PetDisplay({ pet, onRenamePress }) {
 
   return (
     <View style={styles.wrapper}>
-      <View style={styles.infoRow}>
-        <Text style={styles.name}>{pet.name}</Text>
-        <Text style={styles.level}>Lv. {pet.level}</Text>
-        <Text style={styles.stage}>{pet.stage.charAt(0).toUpperCase() + pet.stage.slice(1)}</Text>
-        <TouchableOpacity onPress={onRenamePress} style={styles.renameIcon}>
-          <Text style={styles.renameIconText}>✏️</Text>
-        </TouchableOpacity>
-      </View>
-      <View style={styles.xpBarTrack}>
-        <View style={[styles.xpBarFill, { width: `${xpProgress * 100}%` }]} />
-      </View>
+      <TouchableOpacity onPress={onRenamePress} style={styles.renameIcon}>
+        <Text style={styles.renameIconText}>✏️</Text>
+      </TouchableOpacity>
 
       <Image source={imageSource} style={styles.petImage} resizeMode="contain" />
 
@@ -129,22 +111,9 @@ function ActionButton({ label, onPress, disabled }) {
 
 const styles = StyleSheet.create({
   wrapper: { width: "100%", height: "100%", justifyContent: "space-between" },
-  infoRow: { flexDirection: "row", alignItems: "center", gap: SPACING.sm },
-  name: { fontSize: 18, fontWeight: "bold", color: COLORS.text },
-  level: { fontSize: 14, color: COLORS.primary, fontWeight: "600" },
-  stage: { fontSize: 14, color: COLORS.textMuted, flex: 1 },
-  renameIcon: { padding: 4 },
+  renameIcon: { alignSelf: "flex-end", padding: 4 },
   renameIconText: { fontSize: 16 },
-  xpBarTrack: {
-    width: "100%",
-    height: 6,
-    backgroundColor: COLORS.border,
-    borderRadius: 3,
-    overflow: "hidden",
-    marginTop: SPACING.xs,
-  },
-  xpBarFill: { height: "100%", backgroundColor: COLORS.primary },
-  petImage: { width: "100%", height: "55%" },
+  petImage: { width: "100%", height: "60%" },
   statsRow: { flexDirection: "row", width: "100%", justifyContent: "space-between", gap: SPACING.sm },
   statItem: { flex: 1, alignItems: "center" },
   statLabel: { fontSize: 11, color: COLORS.textMuted, marginBottom: 2 },

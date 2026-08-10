@@ -1,60 +1,66 @@
 import { useRouter } from "expo-router";
 import React from "react";
-import { ActivityIndicator, Dimensions, ScrollView, StyleSheet, Text, TouchableOpacity, View } from "react-native";
+import { ActivityIndicator, Dimensions, StyleSheet, Text, View } from "react-native";
 import AppModal from "../../src/components/AppModal";
 import EvolutionCelebration from "../../src/components/home/EvolutionCelebration";
 import PersonalCatSlot from "../../src/components/home/PersonalCatSlot";
 import { COLORS, RADIUS, SPACING } from "../../src/constants/config";
 import { useCats } from "../../src/hooks/useCats";
 import { usePet } from "../../src/hooks/usePet";
-import { DAILY_FISH_BONUS } from "../../src/services/pet/petConstants";
+import { DAILY_FISH_BONUS, xpRequiredForLevel } from "../../src/services/pet/petConstants";
 
 const SCREEN_HEIGHT = Dimensions.get("window").height;
 
 export default function HomeScreen() {
   const router = useRouter();
   const { cats, loading } = useCats();
-  const { pet, dailyBonusClaimed, dismissDailyBonusNotice, evolutionCelebration, dismissEvolutionCelebration } = usePet();
+  const {
+    pet,
+    dailyBonusClaimed,
+    dismissDailyBonusNotice,
+    evolutionCelebration,
+    dismissEvolutionCelebration,
+  } = usePet();
 
-  const recentCats = cats.slice(0, 5);
+  const xpNeeded = pet ? xpRequiredForLevel(pet.level) : 1;
+  const xpProgress = pet ? Math.min(pet.xp / xpNeeded, 1) : 0;
 
   return (
-    <ScrollView style={styles.container} contentContainerStyle={styles.content}>
-      {/* Status bar - now also shows fish token count top-right */}
-      <View style={styles.statusBar}>
-        <Text style={styles.statusBarText}>CatDex</Text>
-        {pet && <Text style={styles.fishText}>🐟 {pet.fish_tokens}</Text>}
-      </View>
+    <View style={styles.container}>
+      <View style={styles.content}>
+        {/* Status bar now shows the pet's name/level/stage + XP bar,
+            replacing the plain "CatDex" title. */}
+        <View style={styles.statusBar}>
+          {pet ? (
+            <>
+              <View style={styles.statusBarTopRow}>
+                <Text style={styles.petName}>{pet.name}</Text>
+                <Text style={styles.petLevel}>Lv. {pet.level}</Text>
+                <Text style={styles.petStage}>
+                  {pet.stage.charAt(0).toUpperCase() + pet.stage.slice(1)}
+                </Text>
+              </View>
+              <View style={styles.xpBarTrack}>
+                <View style={[styles.xpBarFill, { width: `${xpProgress * 100}%` }]} />
+              </View>
+            </>
+          ) : (
+            <Text style={styles.statusBarText}>CatDex</Text>
+          )}
+        </View>
 
-      <View style={styles.personalCatCard}>
-        <PersonalCatSlot />
-      </View>
+        <View style={styles.personalCatCard}>
+          <PersonalCatSlot />
+        </View>
 
-      <View style={styles.statsCard}>
-        {loading ? (
-          <ActivityIndicator size="small" color={COLORS.primary} />
-        ) : (
-          <Text style={styles.statsNumber}>{cats.length}</Text>
-        )}
-        <Text style={styles.statsLabel}>Cats Collected</Text>
-      </View>
-
-      <View style={styles.recentSection}>
-        <Text style={styles.sectionTitle}>Recently Added</Text>
-        {!loading && recentCats.length === 0 && (
-          <Text style={styles.emptyText}>
-            No cats yet — tap the + button below to add your first!
-          </Text>
-        )}
-        {recentCats.map((cat) => (
-          <TouchableOpacity
-            key={cat.id}
-            style={styles.recentRow}
-            onPress={() => router.push(`/cat/${cat.id}`)}
-          >
-            <Text style={styles.recentItem}>{cat.name}</Text>
-          </TouchableOpacity>
-        ))}
+        <View style={styles.statsCard}>
+          {loading ? (
+            <ActivityIndicator size="small" color={COLORS.primary} />
+          ) : (
+            <Text style={styles.statsNumber}>{cats.length}</Text>
+          )}
+          <Text style={styles.statsLabel}>Cats Collected</Text>
+        </View>
       </View>
 
       <AppModal
@@ -64,27 +70,37 @@ export default function HomeScreen() {
         onClose={dismissDailyBonusNotice}
         actions={[{ label: "Nice!", onPress: dismissDailyBonusNotice }]}
       />
+
       <EvolutionCelebration celebration={evolutionCelebration} onDismiss={dismissEvolutionCelebration} />
-    </ScrollView>
+    </View>
   );
 }
 
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: COLORS.background },
-  content: { padding: SPACING.md },
+  content: { flex: 1, padding: SPACING.md },
   statusBar: {
     backgroundColor: COLORS.card,
     borderRadius: RADIUS.md,
     padding: SPACING.sm,
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "space-between",
     marginBottom: SPACING.md,
     borderWidth: 1,
     borderColor: COLORS.border,
   },
-  statusBarText: { fontSize: 13, fontWeight: "600", color: COLORS.text },
-  fishText: { fontSize: 13, color: COLORS.text, fontWeight: "600" },
+  statusBarText: { fontSize: 13, fontWeight: "600", color: COLORS.text, textAlign: "center" },
+  statusBarTopRow: { flexDirection: "row", alignItems: "center", gap: SPACING.sm },
+  petName: { fontSize: 16, fontWeight: "bold", color: COLORS.text },
+  petLevel: { fontSize: 13, color: COLORS.primary, fontWeight: "600" },
+  petStage: { fontSize: 13, color: COLORS.textMuted, flex: 1, textAlign: "right" },
+  xpBarTrack: {
+    width: "100%",
+    height: 5,
+    backgroundColor: COLORS.border,
+    borderRadius: 3,
+    overflow: "hidden",
+    marginTop: SPACING.xs,
+  },
+  xpBarFill: { height: "100%", backgroundColor: COLORS.primary },
   personalCatCard: {
     backgroundColor: COLORS.card,
     borderRadius: RADIUS.lg,
@@ -92,7 +108,7 @@ const styles = StyleSheet.create({
     alignItems: "center",
     justifyContent: "center",
     marginBottom: SPACING.md,
-    height: SCREEN_HEIGHT * 1.0,
+    flex: 1,
     borderWidth: 1,
     borderColor: COLORS.border,
   },
@@ -101,19 +117,9 @@ const styles = StyleSheet.create({
     borderRadius: RADIUS.md,
     padding: SPACING.sm,
     alignItems: "center",
-    marginBottom: SPACING.md,
     minHeight: 50,
     justifyContent: "center",
   },
   statsNumber: { fontSize: 20, fontWeight: "bold", color: COLORS.primary },
   statsLabel: { fontSize: 12, color: COLORS.textMuted, marginTop: 2 },
-  recentSection: { marginTop: SPACING.md },
-  sectionTitle: { fontSize: 16, fontWeight: "bold", marginBottom: SPACING.sm, color: COLORS.text },
-  emptyText: { fontSize: 14, color: COLORS.textMuted, fontStyle: "italic" },
-  recentRow: {
-    paddingVertical: SPACING.sm,
-    borderBottomWidth: 1,
-    borderBottomColor: COLORS.border,
-  },
-  recentItem: { fontSize: 14, color: COLORS.text },
 });

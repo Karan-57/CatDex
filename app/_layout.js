@@ -27,11 +27,21 @@ export default function RootLayout() {
   return (
     <CatProvider>
       <PetProvider>
-        <Stack
+        <Tabs
           screenOptions={{
             headerStyle: { backgroundColor: COLORS.card },
             headerTintColor: COLORS.text,
             headerTitleStyle: { fontWeight: "600" },
+            headerRight: () => <FishHeaderBadge />,
+            tabBarActiveTintColor: COLORS.primary,
+            tabBarInactiveTintColor: COLORS.textMuted,
+            tabBarStyle: {
+              backgroundColor: COLORS.card,
+              borderTopColor: COLORS.border,
+              height: 64,
+              paddingBottom: 8,
+              paddingTop: 8,
+            },
           }}
         >
           <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
