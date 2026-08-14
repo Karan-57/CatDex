@@ -2,12 +2,9 @@ import { Tabs, useRouter } from "expo-router";
 import { StyleSheet, TouchableOpacity, View } from "react-native";
 
 import { Ionicons } from "@expo/vector-icons";
+import FishHeaderBadge from "../../src/components/home/FishHeaderBadge";
 import { COLORS } from "../../src/constants/config";
 
-// Custom center button for the "+" tab. Instead of navigating to a real
-// tab screen, tapping this immediately pushes the Camera screen (outside
-// the tab group). This keeps the tab bar's visual symmetry (5 icons)
-// without needing a real "Add Cat" tab screen that would flash on tap.
 function AddCatButton() {
   const router = useRouter();
   return (
@@ -28,6 +25,7 @@ export default function TabsLayout() {
         headerStyle: { backgroundColor: COLORS.card },
         headerTintColor: COLORS.text,
         headerTitleStyle: { fontWeight: "600" },
+        headerRight: () => <FishHeaderBadge />,
         tabBarActiveTintColor: COLORS.primary,
         tabBarInactiveTintColor: COLORS.textMuted,
         tabBarStyle: {
