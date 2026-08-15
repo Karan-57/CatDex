@@ -44,8 +44,12 @@ export const DECAY_PER_HOUR = 100 / HOURS_TO_FULL_DECAY;
 
 export const ACTION_DURATIONS_MS = {
   feeding: 8 * 1000,
-  playing: 15 * 60 * 1000,
+  playing: 30 * 1000,
   sleeping: 60 * 60 * 1000,
 };
 
-export const ACTION_COOLDOWN_MS = 12 * 60 * 60 * 1000; // 12 hours
+export const ACTION_COOLDOWN_MS = {
+  feeding: 12 * 60 * 60 * 1000, // 12 hours
+  playing: 30 * 60 * 1000,       // 30 minutes
+  sleeping: 12 * 60 * 60 * 1000, // 12 hours
+};

@@ -1,4 +1,5 @@
 import { useRouter } from "expo-router";
+import { Camera, Images } from "lucide-react-native";
 import { StyleSheet, Text, TouchableOpacity, View } from "react-native";
 import { COLORS, RADIUS, SPACING } from "../src/constants/config";
 
@@ -14,14 +15,16 @@ export default function AddCatChoiceScreen() {
         style={styles.optionButton}
         onPress={() => router.push("/camera")}
       >
-        <Text style={styles.optionText}>📷 Take a Photo</Text>
+        <Text style={styles.optionText}>
+          <Camera size={22} color="#0d0d0d" /> Take a Photo</Text>
       </TouchableOpacity>
 
       <TouchableOpacity
         style={styles.optionButton}
         onPress={() => router.push("/camera?mode=gallery")}
       >
-        <Text style={styles.optionText}>🖼️ Choose from Gallery</Text>
+        <Text style={styles.optionText}>
+          <Images size={22} color="#0d0d0d" /> Choose from Gallery</Text>
       </TouchableOpacity>
     </View>
   );

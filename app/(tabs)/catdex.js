@@ -1,9 +1,14 @@
 import { useRouter } from "expo-router";
 import { useState } from "react";
-import { FlatList, Image, StyleSheet, Text, TextInput, TouchableOpacity, View } from "react-native";
+import { Dimensions, FlatList, Image, StyleSheet, Text, TextInput, TouchableOpacity, View } from "react-native";
 import { COLORS, RADIUS, SPACING } from "../../src/constants/config";
 import { useCats } from "../../src/hooks/useCats";
 import { getFullUri } from "../../src/services/storage/fileStorage";
+
+// Fixed card width instead of flex: 1, so a single item doesn't stretch
+// to fill the whole row width. Calculated to fit 2 per row with padding.
+const SCREEN_WIDTH = Dimensions.get("window").width;
+const CARD_WIDTH = (SCREEN_WIDTH - SPACING.sm * 3) / 2;
 
 export default function CatDexScreen() {
   const router = useRouter();
@@ -38,7 +43,8 @@ export default function CatDexScreen() {
         style={styles.searchInput}
         placeholder="Search cats..."
         value={search}
-        onChangeText={setSearch}placeholderTextColor={COLORS.textMuted}
+        onChangeText={setSearch}
+        placeholderTextColor={COLORS.textMuted}
       />
 
       <TouchableOpacity
@@ -70,6 +76,7 @@ export default function CatDexScreen() {
             <Image
               source={{ uri: getFullUri(item.sticker_photo_path) }}
               style={styles.stickerImage}
+              resizeMode="contain"
             />
             <Text style={styles.catName} numberOfLines={1}>
               {item.is_favorite ? "★ " : ""}{item.name}
@@ -101,7 +108,7 @@ const styles = StyleSheet.create({
   },
   emptyText: { textAlign: "center", color: COLORS.textMuted, fontSize: 14 },
   card: {
-    flex: 1,
+    width: CARD_WIDTH,
     margin: SPACING.xs,
     backgroundColor: COLORS.card,
     borderRadius: RADIUS.md,

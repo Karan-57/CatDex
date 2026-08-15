@@ -1,6 +1,6 @@
 import { PencilLine } from 'lucide-react-native';
-import React from "react";
-import { ActivityIndicator, StyleSheet, Text, TouchableOpacity, View } from "react-native";
+import React, { useState } from "react";
+import { ActivityIndicator, StyleSheet, Text, TextInput, TouchableOpacity, View } from "react-native";
 import AppModal from "../../src/components/AppModal";
 import EvolutionCelebration from "../../src/components/home/EvolutionCelebration";
 import PersonalCatSlot, { PetControls } from "../../src/components/home/PersonalCatSlot";
@@ -9,38 +9,54 @@ import { useCats } from "../../src/hooks/useCats";
 import { usePet } from "../../src/hooks/usePet";
 import { DAILY_FISH_BONUS, xpRequiredForLevel } from "../../src/services/pet/petConstants";
 
-export default function HomeScreen({onRenamePress}) {
+export default function HomeScreen() {
   const { cats, loading } = useCats();
   const {
     pet,
+    renamePet,
     dailyBonusClaimed,
     dismissDailyBonusNotice,
     evolutionCelebration,
     dismissEvolutionCelebration,
   } = usePet();
 
+  const [showRename, setShowRename] = useState(false);
+  const [nameInput, setNameInput] = useState("");
+  const [savingName, setSavingName] = useState(false);
+
   const xpNeeded = pet ? xpRequiredForLevel(pet.level) : 1;
   const xpProgress = pet ? Math.min(pet.xp / xpNeeded, 1) : 0;
+
+  function openRename() {
+    setNameInput(pet?.name || "");
+    setShowRename(true);
+  }
+
+  async function handleRename() {
+    if (!nameInput.trim()) return;
+    setSavingName(true);
+    await renamePet(nameInput.trim());
+    setSavingName(false);
+    setShowRename(false);
+  }
 
   return (
     <View style={styles.container}>
       <View style={styles.content}>
-        {/* Status bar now shows the pet's name/level/stage + XP bar,
-            replacing the plain "CatDex" title. */}
         <View style={styles.statusBar}>
           {pet ? (
             <>
               <View style={styles.statusBarTopRow}>
                 <Text style={styles.petName}>{pet.name}</Text>
-                <TouchableOpacity onPress={onRenamePress} style={styles.renameIcon}>
-                  <Text style={styles.renameIconText}>
-                    <PencilLine size={22} color="#0d0d0d" />
-                  </Text>
-                </TouchableOpacity>
                 <Text style={styles.petLevel}>Lv. {pet.level}</Text>
                 <Text style={styles.petStage}>
                   {pet.stage.charAt(0).toUpperCase() + pet.stage.slice(1)}
                 </Text>
+                <TouchableOpacity onPress={openRename} style={styles.renameIcon}>
+                  <Text style={styles.renameIconText}>
+                    <PencilLine size={22} color="#0d0d0d"/>
+                  </Text>
+                </TouchableOpacity>
               </View>
               <View style={styles.xpBarTrack}>
                 <View style={[styles.xpBarFill, { width: `${xpProgress * 100}%` }]} />
@@ -80,6 +96,24 @@ export default function HomeScreen({onRenamePress}) {
       />
 
       <EvolutionCelebration celebration={evolutionCelebration} onDismiss={dismissEvolutionCelebration} />
+
+      <AppModal
+        visible={showRename}
+        title="Name Your Cat"
+        onClose={() => setShowRename(false)}
+        actions={[
+          { label: "Cancel", style: "secondary", onPress: () => setShowRename(false) },
+          { label: savingName ? "Saving..." : "Save", onPress: handleRename },
+        ]}
+      >
+        <TextInput
+          style={styles.renameInput}
+          placeholder="Enter a name..."
+          placeholderTextColor={COLORS.textMuted}
+          value={nameInput}
+          onChangeText={setNameInput}
+        />
+      </AppModal>
     </View>
   );
 }
@@ -100,6 +134,8 @@ const styles = StyleSheet.create({
   petName: { fontSize: 16, fontWeight: "bold", color: COLORS.text },
   petLevel: { fontSize: 13, color: COLORS.primary, fontWeight: "600" },
   petStage: { fontSize: 13, color: COLORS.textMuted, flex: 1, textAlign: "right" },
+  renameIcon: { padding: 4 },
+  renameIconText: { fontSize: 15 },
   xpBarTrack: {
     width: "100%",
     height: 5,
@@ -138,4 +174,13 @@ const styles = StyleSheet.create({
   },
   statsNumber: { fontSize: 20, fontWeight: "bold", color: COLORS.primary },
   statsLabel: { fontSize: 12, color: COLORS.textMuted, marginTop: 2 },
+  renameInput: {
+    backgroundColor: COLORS.background,
+    borderRadius: RADIUS.sm,
+    padding: SPACING.sm,
+    borderWidth: 1,
+    borderColor: COLORS.border,
+    marginTop: SPACING.sm,
+    textAlign: "center",
+  },
 });

@@ -11,13 +11,14 @@ import { COLORS, RADIUS, SPACING } from "../constants/config";
  * @param {Array} actions - [{ label, onPress, style: "primary"|"danger"|"secondary" }]
  * @param {function} onClose
  */
-export default function AppModal({ visible, title, message, actions, onClose }) {
+export default function AppModal({ visible, title, message, actions, onClose, children }) {
   return (
     <Modal visible={visible} transparent animationType="fade" onRequestClose={onClose}>
       <View style={styles.backdrop}>
         <View style={styles.card}>
           <Text style={styles.title}>{title}</Text>
           {!!message && <Text style={styles.message}>{message}</Text>}
+          {children}
 
           <View style={styles.actionRow}>
             {actions.map((action, index) => (

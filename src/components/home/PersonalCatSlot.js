@@ -1,84 +1,173 @@
-import React, { useState } from "react";
-import { StyleSheet, Text, TextInput, TouchableOpacity, View } from "react-native";
+import React, { useEffect, useState } from "react";
+import { Alert, Image, ImageBackground, StyleSheet, Text, TouchableOpacity, View } from "react-native";
 import { COLORS, RADIUS, SPACING } from "../../constants/config";
 import { usePet } from "../../hooks/usePet";
-import { PetControls, PetVisual } from "./PetDisplay";
+import { deriveEmotion, getActiveAction, isActionOnCooldown } from "../../services/pet/petLogic";
 
-export default function PersonalCatSlot() {
-  const { pet, loading, renamePet } = usePet();
-  const [showRename, setShowRename] = useState(false);
-  const [nameInput, setNameInput] = useState("");
-  const [saving, setSaving] = useState(false);
+const PET_IMAGES = {
+  kitten: {
+    content: require("../../../assets/pet/kitten/content.png"),
+    happy: require("../../../assets/pet/kitten/happy.png"),
+    sad: require("../../../assets/pet/kitten/sad.png"),
+    sleepy: require("../../../assets/pet/kitten/sleepy.png"),
+    hungry: require("../../../assets/pet/kitten/hungry.png"),
+  },
+};
 
-  async function handleRename() {
-    if (!nameInput.trim()) return;
-    setSaving(true);
-    await renamePet(nameInput.trim());
-    setSaving(false);
-    setShowRename(false);
-  }
+const ROOM_BACKGROUND = require("../../../assets/pet/room-background.jpg");
 
-  if (loading || !pet) {
-    return <View style={styles.card} />;
-  }
+const ACTION_IMAGE_KEY = {
+  feeding: "hungry",
+  playing: "happy",
+  sleeping: "sleepy",
+};
 
-  if (showRename) {
-    return (
-      <View style={styles.card}>
-        <Text style={styles.title}>Name Your Cat</Text>
-        <TextInput
-          style={styles.input}
-          placeholder="Enter a name..."
-          placeholderTextColor={COLORS.textMuted}
-          value={nameInput}
-          onChangeText={setNameInput}
-        />
-        <TouchableOpacity
-          style={[styles.button, saving && styles.buttonDisabled]}
-          onPress={handleRename}
-          disabled={saving}
-        >
-          <Text style={styles.buttonText}>{saving ? "Saving..." : "Save Name"}</Text>
-        </TouchableOpacity>
-      </View>
-    );
-  }
+/**
+ * Pet's visual: room background + mood/action PNG layered on top.
+ * Ticks every second so the pose correctly reverts once an action's
+ * duration passes, without needing navigation or a manual refresh.
+ */
+export function PetVisual({ pet }) {
+  const [, forceTick] = useState(0);
+  useEffect(() => {
+    const interval = setInterval(() => forceTick((t) => t + 1), 1000);
+    return () => clearInterval(interval);
+  }, []);
 
-  return <PetVisual pet={pet} onRenamePress={() => setShowRename(true)} />;
+  const activeAction = getActiveAction(pet);
+  const emotion = activeAction ? ACTION_IMAGE_KEY[activeAction] : deriveEmotion(pet);
+  const stageImages = PET_IMAGES[pet.stage] || PET_IMAGES.kitten;
+  const imageSource = stageImages[emotion] || stageImages.content;
+
+  return (
+    <ImageBackground
+      source={ROOM_BACKGROUND}
+      style={styles.visualWrapper}
+      imageStyle={{ borderRadius: RADIUS.lg }}
+    >
+      <Image source={imageSource} style={styles.petImage} resizeMode="contain" />
+    </ImageBackground>
+  );
 }
 
-// Exposes PetControls so the Home screen can render it in its own
-// separate container below the visual card.
-export { PetControls };
+/**
+ * Stats bars + Feed/Play/Sleep buttons. Each button is disabled ONLY
+ * by its OWN cooldown/active-action state — not by whether a different
+ * action is currently running. Feeding doesn't block Play, etc.
+ */
+export function PetControls({ pet }) {
+  const { feedPet, playWithPet, putPetToSleep } = usePet();
+
+  const [, forceTick] = useState(0);
+  useEffect(() => {
+    const interval = setInterval(() => forceTick((t) => t + 1), 1000);
+    return () => clearInterval(interval);
+  }, []);
+
+  const activeAction = getActiveAction(pet);
+
+  async function handleFeed() {
+    const success = await feedPet();
+    if (!success) {
+      Alert.alert(
+        "Can't Feed Right Now",
+        "Either you're out of fish, or your cat needs to rest before eating again."
+      );
+    }
+  }
+
+  async function handlePlay() {
+    const success = await playWithPet();
+    if (!success) {
+      Alert.alert("Not Ready to Play", "Your cat needs a break before playing again.");
+    }
+  }
+
+  async function handleSleep() {
+    const success = await putPetToSleep();
+    if (!success) {
+      Alert.alert("Not Sleepy Yet", "Your cat isn't ready to sleep again so soon.");
+    }
+  }
+
+  // Each button's disabled state is independent: only true if THIS
+  // specific action is the one currently running, OR this specific
+  // action is on its own cooldown.
+  const feedDisabled = activeAction === "feeding" || isActionOnCooldown(pet, "feeding");
+  const playDisabled = activeAction === "playing" || isActionOnCooldown(pet, "playing");
+  const sleepDisabled = activeAction === "sleeping" || isActionOnCooldown(pet, "sleeping");
+
+  return (
+    <View style={styles.controlsWrapper}>
+      <View style={styles.statsRow}>
+        <StatBar label="Hunger" value={pet.hunger} color={COLORS.warning} />
+        <StatBar label="Sleep" value={pet.sleep} color={COLORS.secondary} />
+        <StatBar label="Happy" value={pet.happiness} color={COLORS.success} />
+      </View>
+
+      <View style={styles.actionRow}>
+        <ActionButton label="Feed" onPress={handleFeed} disabled={feedDisabled} />
+        <ActionButton label="Play" onPress={handlePlay} disabled={playDisabled} />
+        <ActionButton label="Sleep" onPress={handleSleep} disabled={sleepDisabled} />
+      </View>
+    </View>
+  );
+}
+
+function StatBar({ label, value, color }) {
+  return (
+    <View style={styles.statItem}>
+      <Text style={styles.statLabel}>{label}</Text>
+      <View style={styles.statTrack}>
+        <View style={[styles.statFill, { width: `${value}%`, backgroundColor: color }]} />
+      </View>
+    </View>
+  );
+}
+
+function ActionButton({ label, onPress, disabled }) {
+  return (
+    <TouchableOpacity
+      style={[styles.actionButton, disabled && styles.actionButtonDisabled]}
+      onPress={onPress}
+      disabled={disabled}
+    >
+      <Text style={styles.actionButtonText}>{label}</Text>
+    </TouchableOpacity>
+  );
+}
 
 const styles = StyleSheet.create({
-  card: {
-    backgroundColor: COLORS.card,
-    borderRadius: RADIUS.lg,
-    padding: SPACING.xl,
-    alignItems: "center",
-    justifyContent: "center",
-    borderWidth: 1,
-    borderColor: COLORS.border,
-    height: "100%",
-  },
-  title: { fontSize: 18, fontWeight: "bold", color: COLORS.text, marginBottom: SPACING.md },
-  input: {
+  visualWrapper: {
     width: "100%",
-    backgroundColor: COLORS.background,
-    borderRadius: RADIUS.sm,
-    padding: SPACING.sm,
-    borderWidth: 1,
-    borderColor: COLORS.border,
-    marginBottom: SPACING.md,
-    textAlign: "center",
+    height: "100%",
+    borderRadius: RADIUS.lg,
+    overflow: "hidden",
+    justifyContent: "center",
+    alignItems: "center",
   },
-  button: {
+  // Increased from the previous 35%/30% - this is the value to tune
+  // if you want the cat bigger or smaller relative to its card.
+  petImage: { width: "55%", height: "50%" },
+  controlsWrapper: { width: "100%" },
+  statsRow: { flexDirection: "row", width: "100%", justifyContent: "space-between", gap: SPACING.sm, marginBottom: SPACING.sm },
+  statItem: { flex: 1, alignItems: "center" },
+  statLabel: { fontSize: 11, color: COLORS.textMuted, marginBottom: 2 },
+  statTrack: {
+    width: "100%",
+    height: 6,
+    backgroundColor: COLORS.border,
+    borderRadius: 3,
+    overflow: "hidden",
+  },
+  statFill: { height: "100%" },
+  actionRow: { flexDirection: "row", gap: SPACING.sm, justifyContent: "center" },
+  actionButton: {
     backgroundColor: COLORS.primary,
-    paddingVertical: SPACING.sm,
-    paddingHorizontal: SPACING.xl,
-    borderRadius: RADIUS.md,
+    paddingVertical: SPACING.xs,
+    paddingHorizontal: SPACING.md,
+    borderRadius: RADIUS.sm,
   },
-  buttonDisabled: { opacity: 0.5 },
-  buttonText: { color: "#fff", fontWeight: "600" },
+  actionButtonDisabled: { opacity: 0.4 },
+  actionButtonText: { color: "#fff", fontWeight: "600", fontSize: 13 },
 });

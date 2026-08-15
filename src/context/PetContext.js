@@ -94,7 +94,7 @@ export function PetProvider({ children }) {
     const { level, xp } = applyXpGain(state.pet.level, state.pet.xp, xpGained);
     const stage = deriveStage(level);
     const endTime = new Date(Date.now() + ACTION_DURATIONS_MS[actionName]).toISOString();
-    const cooldownEndTime = new Date(Date.now() + ACTION_COOLDOWN_MS).toISOString();
+    const cooldownEndTime = new Date(Date.now() + ACTION_COOLDOWN_MS[actionName]).toISOString();
 
     const cooldownFieldMap = {
       feeding: "feed_cooldown_end",
