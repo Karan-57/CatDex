@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import { Alert, Image, StyleSheet, Text, TouchableOpacity, View } from "react-native";
+import { Alert, Image, ImageBackground, StyleSheet, Text, TouchableOpacity, View } from "react-native";
 import { COLORS, RADIUS, SPACING } from "../../constants/config";
 import { usePet } from "../../hooks/usePet";
 import { deriveEmotion, getActiveAction, isActionOnCooldown } from "../../services/pet/petLogic";
@@ -13,6 +13,8 @@ const PET_IMAGES = {
     hungry: require("../../../assets/pet/kitten/hungry.png"),
   },
 };
+
+const ROOM_BACKGROUND = require("../../../assets/pet/room-background.jpg");
 
 const ACTION_IMAGE_KEY = {
   feeding: "hungry",
@@ -41,12 +43,10 @@ export function PetVisual({ pet, onRenamePress }) {
   const imageSource = stageImages[emotion] || stageImages.content;
 
   return (
-    <View style={styles.visualWrapper}>
-      <TouchableOpacity onPress={onRenamePress} style={styles.renameIcon}>
-        <Text style={styles.renameIconText}>✏️</Text>
-      </TouchableOpacity>
+    <ImageBackground source={ROOM_BACKGROUND} style={styles.visualWrapper} imageStyle={{ borderRadius: RADIUS.lg }}>
       <Image source={imageSource} style={styles.petImage} resizeMode="contain" />
-    </View>
+    </ImageBackground>
+
   );
 }
 
@@ -157,7 +157,7 @@ const styles = StyleSheet.create({
   renameIconText: { fontSize: 16 },
   // Pet PNG shrunk to roughly half its previous relative size, reducing
   // empty space now that it's layered over a full-scene background.
-  petImage: { width: "35%", height: "30%" },
+  petImage: { width: "65%", height: "60%" },
   controlsWrapper: { width: "100%" },
   statsRow: { flexDirection: "row", width: "100%", justifyContent: "space-between", gap: SPACING.sm, marginBottom: SPACING.sm },
   statItem: { flex: 1, alignItems: "center" },
@@ -170,7 +170,7 @@ const styles = StyleSheet.create({
     overflow: "hidden",
   },
   statFill: { height: "100%" },
-  actionRow: { flexDirection: "row", gap: SPACING.sm, justifyContent: "center" },
+  actionRow: { flexDirection: "row", gap: SPACING.md, justifyContent: "center" },
   actionButton: {
     backgroundColor: COLORS.primary,
     paddingVertical: SPACING.xs,

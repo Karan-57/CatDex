@@ -1,5 +1,6 @@
+import { PencilLine } from 'lucide-react-native';
 import React from "react";
-import { ActivityIndicator, StyleSheet, Text, View } from "react-native";
+import { ActivityIndicator, StyleSheet, Text, TouchableOpacity, View } from "react-native";
 import AppModal from "../../src/components/AppModal";
 import EvolutionCelebration from "../../src/components/home/EvolutionCelebration";
 import PersonalCatSlot, { PetControls } from "../../src/components/home/PersonalCatSlot";
@@ -8,7 +9,7 @@ import { useCats } from "../../src/hooks/useCats";
 import { usePet } from "../../src/hooks/usePet";
 import { DAILY_FISH_BONUS, xpRequiredForLevel } from "../../src/services/pet/petConstants";
 
-export default function HomeScreen() {
+export default function HomeScreen({onRenamePress}) {
   const { cats, loading } = useCats();
   const {
     pet,
@@ -31,6 +32,11 @@ export default function HomeScreen() {
             <>
               <View style={styles.statusBarTopRow}>
                 <Text style={styles.petName}>{pet.name}</Text>
+                <TouchableOpacity onPress={onRenamePress} style={styles.renameIcon}>
+                  <Text style={styles.renameIconText}>
+                    <PencilLine size={22} color="#0d0d0d" />
+                  </Text>
+                </TouchableOpacity>
                 <Text style={styles.petLevel}>Lv. {pet.level}</Text>
                 <Text style={styles.petStage}>
                   {pet.stage.charAt(0).toUpperCase() + pet.stage.slice(1)}

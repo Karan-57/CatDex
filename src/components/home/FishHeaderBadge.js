@@ -1,3 +1,4 @@
+import { Fish } from "lucide-react-native";
 import { StyleSheet, Text, View } from "react-native";
 import { COLORS, RADIUS, SPACING } from "../../constants/config";
 import { usePet } from "../../hooks/usePet";
@@ -8,7 +9,8 @@ export default function FishHeaderBadge() {
 
   return (
     <View style={styles.badge}>
-      <Text style={styles.text}>🐟 {pet.fish_tokens}</Text>
+      <Text style={styles.text}>
+        <Fish size={22} color="#0d0d0d" /> {pet.fish_tokens}</Text>
     </View>
   );
 }
