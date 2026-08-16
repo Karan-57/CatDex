@@ -148,7 +148,6 @@ const styles = StyleSheet.create({
   personalCatCard: {
     backgroundColor: COLORS.card,
     borderRadius: RADIUS.lg,
-    padding: SPACING.md,
     alignItems: "center",
     justifyContent: "center",
     marginBottom: SPACING.md,
