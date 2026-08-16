@@ -1,9 +1,10 @@
 import { useEffect, useState } from "react";
-import { Alert, Image, ImageBackground, StyleSheet, Text, TouchableOpacity, View } from "react-native";
+import { Image, ImageBackground, StyleSheet, Text, TouchableOpacity, View } from "react-native";
 import { Gesture, GestureDetector } from "react-native-gesture-handler";
 import { COLORS, RADIUS, SPACING } from "../../constants/config";
 import { usePet } from "../../hooks/usePet";
 import { deriveEmotion, getActiveAction, isActionOnCooldown } from "../../services/pet/petLogic";
+import AppModal from "../AppModal";
 
 const PET_IMAGES = {
   kitten: {
@@ -71,6 +72,7 @@ export function PetVisual({ pet }) {
  */
 export function PetControls({ pet }) {
   const { feedPet, playWithPet, putPetToSleep } = usePet();
+  const [alertInfo, setAlertInfo] = useState(null); // { title, message } or null
 
   const [, forceTick] = useState(0);
   useEffect(() => {
@@ -83,24 +85,24 @@ export function PetControls({ pet }) {
   async function handleFeed() {
     const success = await feedPet();
     if (!success) {
-      Alert.alert(
-        "Can't Feed Right Now",
-        "Either you're out of fish, or your cat needs to rest before eating again."
-      );
+      setAlertInfo({
+        title: "Can't Feed Right Now",
+        message: "Either you're out of fish, or your cat needs to rest before eating again.",
+      });
     }
   }
 
   async function handlePlay() {
     const success = await playWithPet();
     if (!success) {
-      Alert.alert("Not Ready to Play", "Your cat needs a break before playing again.");
+      setAlertInfo({ title: "Not Ready to Play", message: "Your cat needs a break before playing again." });
     }
   }
 
   async function handleSleep() {
     const success = await putPetToSleep();
     if (!success) {
-      Alert.alert("Not Sleepy Yet", "Your cat isn't ready to sleep again so soon.");
+      setAlertInfo({ title: "Not Sleepy Yet", message: "Your cat isn't ready to sleep again so soon." });
     }
   }
 
@@ -112,7 +114,8 @@ export function PetControls({ pet }) {
   const sleepDisabled = activeAction === "sleeping" || isActionOnCooldown(pet, "sleeping");
 
   return (
-    <View style={styles.controlsWrapper}>
+    <>
+      <View style={styles.controlsWrapper}>
       <View style={styles.statsRow}>
         <StatBar label="Hunger" value={pet.hunger} color={COLORS.warning} />
         <StatBar label="Sleep" value={pet.sleep} color={COLORS.secondary} />
@@ -125,6 +128,15 @@ export function PetControls({ pet }) {
         <ActionButton label="Sleep" onPress={handleSleep} disabled={sleepDisabled} />
       </View>
     </View>
+
+    <AppModal
+      visible={!!alertInfo}
+      title={alertInfo?.title}
+      message={alertInfo?.message}
+      onClose={() => setAlertInfo(null)}
+      actions={[{ label: "OK", onPress: () => setAlertInfo(null) }]}
+    />
+    </>
   );
 }
 
