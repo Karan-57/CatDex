@@ -49,7 +49,7 @@ export const ACTION_DURATIONS_MS = {
 };
 
 export const ACTION_COOLDOWN_MS = {
-  feeding: 12 * 60 * 60 * 1000, // 12 hours
+  feeding: 8 * 60 * 60 * 1000, // 8 hours
   playing: 30 * 60 * 1000,       // 30 minutes
-  sleeping: 12 * 60 * 60 * 1000, // 12 hours
+  sleeping: 10 * 60 * 60 * 1000, // 12 hours
 };

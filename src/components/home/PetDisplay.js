@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { Image, ImageBackground, StyleSheet, Text, TouchableOpacity, View } from "react-native";
 import { Gesture, GestureDetector } from "react-native-gesture-handler";
+import { runOnJS } from "react-native-reanimated";
 import { COLORS, RADIUS, SPACING } from "../../constants/config";
 import { usePet } from "../../hooks/usePet";
 import { deriveEmotion, getActiveAction, isActionOnCooldown } from "../../services/pet/petLogic";
@@ -48,10 +49,11 @@ export function PetVisual({ pet }) {
   // completion), not continuously while dragging, so it respects the
   // same cooldown/action rules as the Play button without spamming.
   const petGesture = Gesture.Pan()
-    .minDistance(20)
-    .onEnd(() => {
-      playWithPet();
-    });
+  .minDistance(20)
+  .onEnd(() => {
+    "worklet";
+    runOnJS(playWithPet)();
+  });
 
   return (
     <GestureDetector gesture={petGesture}>
@@ -174,7 +176,7 @@ const styles = StyleSheet.create({
   },
   // Increased from the previous 35%/30% - this is the value to tune
   // if you want the cat bigger or smaller relative to its card.
-  petImage: { width: "75%", height: "70%", marginTop:"30px" },////cats margin
+  petImage: { width: "75%", height: "70%", marginTop: 30 },////cats margin
   controlsWrapper: { width: "100%" },
   statsRow: { flexDirection: "row", width: "100%", justifyContent: "space-between", gap: SPACING.sm, marginBottom: SPACING.sm },
   statItem: { flex: 1, alignItems: "center" },
