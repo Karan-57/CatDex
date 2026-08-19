@@ -176,7 +176,7 @@ const styles = StyleSheet.create({
   },
   // Increased from the previous 35%/30% - this is the value to tune
   // if you want the cat bigger or smaller relative to its card.
-  petImage: { width: "75%", height: "70%", marginTop: 70 },////cats margin
+  petImage: { width: "75%", height: "70%", marginTop: 90 },////cats margin
   controlsWrapper: { width: "100%" },
   statsRow: { flexDirection: "row", width: "100%", justifyContent: "space-between", gap: SPACING.sm, marginBottom: SPACING.sm },
   statItem: { flex: 1, alignItems: "center" },

@@ -6,7 +6,7 @@ export const STORAGE_FOLDERS = {
 
 
 export const COLORS = {
-  background: "#FAF5EE",
+  background: "#FAF5EE00",
   card: "#FFF8F0",
   primary: "#8B5E3C",
   primaryDark: "#6E4A2F",

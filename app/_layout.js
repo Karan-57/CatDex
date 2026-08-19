@@ -1,6 +1,6 @@
 import { Stack } from "expo-router";
 import React, { useEffect, useState } from "react";
-import { ActivityIndicator, View } from "react-native";
+import { ActivityIndicator, ImageBackground, View } from "react-native";
 import { GestureHandlerRootView } from "react-native-gesture-handler";
 import { COLORS } from "../src/constants/config";
 import { CatProvider } from "../src/context/CatContext";
@@ -27,7 +27,12 @@ if (!dbReady) {
     );
   }
 
-  return (
+return (
+  <ImageBackground
+    source={require("../assets/images/app-background.jpeg")}
+    style={{ flex: 1 }}
+    resizeMode="repeat"
+  >
     <GestureHandlerRootView style={{ flex: 1 }}>
       <CatProvider>
         <PetProvider>
@@ -36,6 +41,7 @@ if (!dbReady) {
               headerStyle: { backgroundColor: COLORS.card },
               headerTintColor: COLORS.text,
               headerTitleStyle: { fontWeight: "600" },
+              contentStyle: { backgroundColor: "transparent" },
             }}
           >
             <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
@@ -49,5 +55,6 @@ if (!dbReady) {
         </PetProvider>
       </CatProvider>
     </GestureHandlerRootView>
+    </ImageBackground>
   );
 }
