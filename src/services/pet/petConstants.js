@@ -21,7 +21,7 @@ export const STAGE_THRESHOLDS = {
 };
 
 // Daily fish token bonus for opening the app.
-export const DAILY_FISH_BONUS = 3;
+export const DAILY_FISH_BONUS = 2;
 
 // Fish earned per real cat collected.
 export const FISH_PER_CAT_COLLECTED = 1;
@@ -39,12 +39,12 @@ export const STAT_RESTORE_AMOUNT = {
 // All three stats drain fully (100 -> 0) over this many hours if the
 // app is never opened. Applied as elapsed-time decay on app launch,
 // not a running timer, since the app isn't running in the background.
-export const HOURS_TO_FULL_DECAY = 24;
+export const HOURS_TO_FULL_DECAY = 36;
 export const DECAY_PER_HOUR = 100 / HOURS_TO_FULL_DECAY;
 
 export const ACTION_DURATIONS_MS = {
   feeding: 8 * 1000,
-  playing: 30 * 1000,
+  playing: 20 * 1000,
   sleeping: 60 * 60 * 1000,
 };
 
