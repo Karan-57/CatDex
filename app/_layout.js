@@ -32,6 +32,7 @@ return (
     source={require("../assets/images/app-background.jpeg")}
     style={{ flex: 1 }}
     resizeMode="repeat"
+    imageStyle={{opacity: 1}}
   >
     <GestureHandlerRootView style={{ flex: 1 }}>
       <CatProvider>

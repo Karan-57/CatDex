@@ -7,6 +7,7 @@ import { COLORS } from "../../src/constants/config";
 
 function AddCatButton() {
   const router = useRouter();
+
   return (
     <TouchableOpacity
       style={styles.addButton}
@@ -22,12 +23,26 @@ export default function TabsLayout() {
   return (
     <Tabs
       screenOptions={{
-        headerStyle: { backgroundColor: COLORS.card },
+        // Makes the screen area transparent so the
+        // ImageBackground from app/_layout.js can show through
+        sceneStyle: {
+          backgroundColor: "transparent",
+        },
+
+        // Header
+        headerStyle: {
+          backgroundColor: COLORS.card,
+        },
         headerTintColor: COLORS.text,
-        headerTitleStyle: { fontWeight: "600" },
+        headerTitleStyle: {
+          fontWeight: "600",
+        },
         headerRight: () => <FishHeaderBadge />,
+
+        // Bottom navigation
         tabBarActiveTintColor: COLORS.primary,
         tabBarInactiveTintColor: COLORS.textMuted,
+
         tabBarStyle: {
           backgroundColor: COLORS.card,
           borderTopColor: COLORS.border,
@@ -47,6 +62,7 @@ export default function TabsLayout() {
           ),
         }}
       />
+
       <Tabs.Screen
         name="catdex"
         options={{
@@ -57,6 +73,7 @@ export default function TabsLayout() {
           ),
         }}
       />
+
       <Tabs.Screen
         name="add-cat-placeholder"
         options={{
@@ -68,6 +85,7 @@ export default function TabsLayout() {
           ),
         }}
       />
+
       <Tabs.Screen
         name="favorites"
         options={{
@@ -78,6 +96,7 @@ export default function TabsLayout() {
           ),
         }}
       />
+
       <Tabs.Screen
         name="settings"
         options={{
@@ -98,6 +117,7 @@ const styles = StyleSheet.create({
     alignItems: "center",
     top: -16,
   },
+
   addButton: {
     width: 56,
     height: 56,
@@ -105,8 +125,12 @@ const styles = StyleSheet.create({
     backgroundColor: COLORS.primary,
     justifyContent: "center",
     alignItems: "center",
+
     shadowColor: "#000",
-    shadowOffset: { width: 0, height: 2 },
+    shadowOffset: {
+      width: 0,
+      height: 2,
+    },
     shadowOpacity: 0.25,
     shadowRadius: 4,
     elevation: 5,
